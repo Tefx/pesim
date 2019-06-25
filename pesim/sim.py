@@ -34,8 +34,10 @@ class ProcessQueue:
 
     def push(self, item):
         heapq.heappush(self.queue, item)
+        assert(len(self.queue) == 1)
 
     def pop(self):
+        assert(len(self.queue) == 1)
         return heapq.heappop(self.queue)
 
     def first(self):
@@ -110,9 +112,13 @@ class Environment:
             ev = self.first()
         self.current_time = ex_time
         if proc_next:
-            if proc_next != "all":
-                pq = self.pqs[id(proc_next)]
-                if len(pq) > 0:
-                    return pq.first().time
+            pq = self.pqs[id(proc_next)]
+            if len(pq) > 0:
+                time = pq.first().time
+                if time == TIME_FOREVER:
+                    # print(self.first(), self.pq_heap[0].queue)
+                    return self.first().time
+                else:
+                    return time
             else:
-                return self.first().time
+                print("error proc has empty event queue")
