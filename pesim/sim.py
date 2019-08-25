@@ -122,3 +122,5 @@ class Environment:
                     return time
             else:
                 print("error proc has empty event queue")
+        else:
+            return self.first().time
