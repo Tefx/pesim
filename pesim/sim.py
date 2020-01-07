@@ -1,6 +1,9 @@
 import heapq
+from inspect import isgenerator
 
 TIME_FOREVER = 10 * 365 * 24 * 60 * 60
+PRIORITY_MAX = 100000
+EPSILON = 1e-3
 
 
 class Event:
@@ -34,14 +37,41 @@ class ProcessQueue:
 
     def push(self, item):
         heapq.heappush(self.queue, item)
-        assert(len(self.queue) == 1)
+        assert (len(self.queue) == 1)
 
     def pop(self):
-        assert(len(self.queue) == 1)
+        assert (len(self.queue) == 1)
         return heapq.heappop(self.queue)
 
     def first(self):
         return self.queue[0]
+
+
+class Process:
+    def __init__(self, env):
+        self.env = env
+        self.time = 0
+        self.process = None
+
+    def _wait(self, priority=PRIORITY_MAX):
+        return TIME_FOREVER, priority
+
+    def _process(self):
+        raise NotImplementedError
+
+    def activate(self, time, priority):
+        self.env.activate(self.process, time if time > self.time else self.time, priority)
+
+    def __call__(self):
+        while True:
+            self.time = yield self._wait()
+            p = self._process()
+            if isgenerator(p):
+                yield from self._process()
+
+    def setup(self):
+        self.process = self()
+        self.env.add(self.process)
 
 
 class Environment:
@@ -54,6 +84,19 @@ class Environment:
     def add(self, process):
         self.processes.append(process)
         return process
+
+    def next_time(self):
+        ev = self.first()
+        if ev:
+            return ev.time
+        else:
+            return TIME_FOREVER
+
+    def pre_ev_hook(self, time):
+        pass
+
+    def post_ev_hook(self, time):
+        pass
 
     def timeout(self, process, time, priority):
         if time < self.current_time: time = self.current_time
@@ -100,13 +143,16 @@ class Environment:
             self.timeout(process, time, priority)
 
     def run_until(self, ex_time, proc_next=None):
+        assert ex_time >= self.current_time
         ev = self.first()
         while ev and ev.time <= ex_time:
             ev = self.pop()
             self.current_time = max(self.current_time, ev.time)
             try:
+                self.pre_ev_hook(self.current_time)
                 time, priority = ev.process.send(self.current_time)
                 self.timeout(ev.process, time, priority)
+                self.post_ev_hook(self.current_time)
             except StopIteration:
                 pass
             ev = self.first()
@@ -116,11 +162,14 @@ class Environment:
             if len(pq) > 0:
                 time = pq.first().time
                 if time == TIME_FOREVER:
-                    # print(self.first(), self.pq_heap[0].queue)
                     return self.first().time
                 else:
                     return time
             else:
                 print("error proc has empty event queue")
         else:
-            return self.first().time
+            ev = self.first()
+            if ev:
+                return ev.time
+            else:
+                return TIME_FOREVER
