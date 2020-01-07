@@ -6,6 +6,17 @@ PRIORITY_MAX = 100000
 EPSILON = 1e-3
 
 
+def feq(a, b):
+    return -EPSILON < a - b < EPSILON
+
+
+def flt(a, b):
+    return b - a > EPSILON
+
+
+def fle(a, b):
+    return b - a > -EPSILON
+
 class Event:
     def __init__(self, time, process, priority):
         self.time = time
@@ -13,10 +24,12 @@ class Event:
         self.priority = priority
 
     def __lt__(self, other):
-        if self.time == other.time:
+        if feq(self.time, other.time):
+        # if self.time == other.time:
             return self.priority < other.priority
         else:
-            return self.time < other.time
+            return flt(self.time, other.time)
+            # return self.time < other.time
 
     def __repr__(self):
         return "<{}|{}|{}>".format(self.time, self.priority, id(self.process))
@@ -60,7 +73,8 @@ class Process:
         raise NotImplementedError
 
     def activate(self, time, priority):
-        self.env.activate(self.process, time if time > self.time else self.time, priority)
+        # self.env.activate(self.process, time if time > self.time else self.time, priority)
+        self.env.activate(self.process, time if flt(self.time, time) else self.time, priority)
 
     def __call__(self):
         while True:
@@ -99,7 +113,9 @@ class Environment:
         pass
 
     def timeout(self, process, time, priority):
-        if time < self.current_time: time = self.current_time
+        if flt(time, self.current_time):
+        # if time < self.current_time:
+            time = self.current_time
         event = Event(time, process, priority)
 
         pid = id(process)
@@ -113,9 +129,12 @@ class Environment:
             heapq.heapify(self.pq_heap)
 
     def activate(self, process, time, priority):
-        if time < self.current_time: time = self.current_time
+        if flt(time, self.current_time):
+        # if time < self.current_time:
+            time = self.current_time
         pq = self.pqs[id(process)]
-        if time < pq.first().time:
+        if flt(time, pq.first().time):
+        # if time < pq.first().time:
             ev = pq.pop()
             ev.time = time
             ev.priority = priority
@@ -143,9 +162,11 @@ class Environment:
             self.timeout(process, time, priority)
 
     def run_until(self, ex_time, proc_next=None):
-        assert ex_time >= self.current_time
+        # assert ex_time >= self.current_time
+        assert fle(self.current_time, ex_time)
         ev = self.first()
-        while ev and ev.time <= ex_time:
+        while ev and fle(ev.time, ex_time):
+        # while ev and ev.time <= ex_time:
             ev = self.pop()
             self.current_time = max(self.current_time, ev.time)
             try:
