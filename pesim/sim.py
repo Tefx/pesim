@@ -17,6 +17,7 @@ def flt(a, b):
 def fle(a, b):
     return b - a > -EPSILON
 
+
 class Event:
     def __init__(self, time, process, priority):
         self.time = time
@@ -25,11 +26,9 @@ class Event:
 
     def __lt__(self, other):
         if feq(self.time, other.time):
-        # if self.time == other.time:
             return self.priority < other.priority
         else:
             return flt(self.time, other.time)
-            # return self.time < other.time
 
     def __repr__(self):
         return "<{}|{}|{}>".format(self.time, self.priority, id(self.process))
@@ -40,20 +39,23 @@ class ProcessQueue:
         self.queue = []
 
     def __lt__(self, other):
-        if len(self.queue) == 0:
-            return len(self.queue) == 0
+        if not self.queue:
+            return not other.queue
         else:
-            return self.queue[0] < other.queue[0]
+            return not other.queue or self.queue[0] < other.queue[0]
 
     def __len__(self):
         return len(self.queue)
 
+    def __bool__(self):
+        return bool(self.queue)
+
     def push(self, item):
         heapq.heappush(self.queue, item)
-        assert (len(self.queue) == 1)
+        assert len(self.queue) == 1
 
     def pop(self):
-        assert (len(self.queue) == 1)
+        assert len(self.queue) == 1
         return heapq.heappop(self.queue)
 
     def first(self):
@@ -114,7 +116,7 @@ class Environment:
 
     def timeout(self, process, time, priority):
         if flt(time, self.current_time):
-        # if time < self.current_time:
+            # if time < self.current_time:
             time = self.current_time
         event = Event(time, process, priority)
 
@@ -130,11 +132,11 @@ class Environment:
 
     def activate(self, process, time, priority):
         if flt(time, self.current_time):
-        # if time < self.current_time:
+            # if time < self.current_time:
             time = self.current_time
         pq = self.pqs[id(process)]
         if flt(time, pq.first().time):
-        # if time < pq.first().time:
+            # if time < pq.first().time:
             ev = pq.pop()
             ev.time = time
             ev.priority = priority
@@ -142,7 +144,7 @@ class Environment:
             heapq.heapify(self.pq_heap)
 
     def pop(self):
-        if len(self.pq_heap) > 0 and len(self.pq_heap[0]) > 0:
+        if self.pq_heap and self.pq_heap[0]:
             pq = heapq.heappop(self.pq_heap)
             event = pq.pop()
             heapq.heappush(self.pq_heap, pq)
@@ -151,7 +153,7 @@ class Environment:
             return None
 
     def first(self):
-        if len(self.pq_heap) > 0 and len(self.pq_heap[0]) > 0:
+        if self.pq_heap and self.pq_heap[0]:
             return self.pq_heap[0].first()
         else:
             return None
@@ -162,11 +164,8 @@ class Environment:
             self.timeout(process, time, priority)
 
     def run_until(self, ex_time, proc_next=None):
-        # assert ex_time >= self.current_time
-        assert fle(self.current_time, ex_time)
         ev = self.first()
         while ev and fle(ev.time, ex_time):
-        # while ev and ev.time <= ex_time:
             ev = self.pop()
             self.current_time = max(self.current_time, ev.time)
             try:
@@ -180,7 +179,7 @@ class Environment:
         self.current_time = ex_time
         if proc_next:
             pq = self.pqs[id(proc_next)]
-            if len(pq) > 0:
+            if pq:
                 time = pq.first().time
                 if time == TIME_FOREVER:
                     return self.first().time

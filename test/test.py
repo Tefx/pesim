@@ -36,7 +36,7 @@ class Worker:
     def __call__(self):
         time = 0
         while not self.closed:
-            if len(self.queue) > 0:
+            if self.queue:
                 load = self.queue.popleft()
                 print(time, "Start", load)
                 time = yield time + load.time, 0
