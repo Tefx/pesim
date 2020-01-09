@@ -3,3 +3,4 @@ cdef class Event:
     cdef readonly object process
     cdef public int priority
 
+    cdef bint ltcmp(self, Event other)

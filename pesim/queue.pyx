@@ -1,29 +1,23 @@
-import heapq
-
-
 cdef class ProcessQueue:
     def __init__(self):
-        self.queue = []
+        self.event = None
 
     def __lt__(self, ProcessQueue other):
-        if not self.queue:
-            return not other.queue
+        if self.event is None:
+            return other.event is None
         else:
-            return not other.queue or self.queue[0] < other.queue[0]
-
-    def __len__(self):
-        return len(self.queue)
+            return other.event is None or self.event.ltcmp(other.event)
 
     def __bool__(self):
-        return bool(self.queue)
+        return self.event is not None
 
     cdef push(self, Event item):
-        heapq.heappush(self.queue, item)
-        # assert len(self.queue) == 1
+        self.event = item
 
     cdef Event pop(self):
-        # assert len(self.queue) == 1
-        return heapq.heappop(self.queue)
+        cdef Event ev = self.event
+        self.event = None
+        return ev
 
     cdef Event first(self):
-        return self.queue[0]
+        return self.event

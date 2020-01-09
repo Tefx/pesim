@@ -113,12 +113,11 @@ cdef class Environment:
             pq = self.pqs[id(proc_next)]
             if pq:
                 ev = pq.first()
-                time = ev.time
-                if feq(time, _TIME_FOREVER):
+                if feq(ev.time, _TIME_FOREVER):
                     ev = self.first()
                     return ev.time
                 else:
-                    return time
+                    return ev.time
             else:
                 print("error proc has empty event queue")
         else:
