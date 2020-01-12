@@ -3,7 +3,7 @@ from .event cimport Event
 cdef class Environment:
     cdef dict pqs
     cdef list pq_heap
-    cdef float current_time
+    cdef readonly float current_time
     cdef list processes
 
     cpdef add(self, process)
