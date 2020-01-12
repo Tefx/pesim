@@ -7,13 +7,14 @@ from .queue cimport ProcessQueue
 
 cdef class Environment:
     def __init__(self):
-        self.pqs = {}
+        # self.pqs = {}
         self.pq_heap = []
         self.current_time = 0
         self.processes = []
 
-    cpdef add(self, process):
+    cpdef Process add(self, Process process):
         self.processes.append(process)
+        heapq.heappush(self.pq_heap, process.pq)
         return process
 
     cdef float next_time(self):
@@ -23,38 +24,33 @@ cdef class Environment:
         else:
             return _TIME_FOREVER
 
-    def pre_ev_hook(self, time):
+    cpdef pre_ev_hook(self, time):
         pass
 
-    def post_ev_hook(self, time):
+    cpdef post_ev_hook(self, time):
         pass
 
-    cdef timeout(self, process, float time, int priority):
+    cdef timeout(self, Process process, float time, int priority):
         cdef Event event
         cdef ProcessQueue pq
 
         if flt(time, self.current_time):
             time = self.current_time
         event = Event(time, process, priority)
+        pq = process.pq
+        pq.push(event)
+        heapq.heapify(self.pq_heap)
 
-        pid = id(process)
-        if pid not in self.pqs:
-            pq = ProcessQueue()
-            self.pqs[pid] = pq
-            pq.push(event)
-            heapq.heappush(self.pq_heap, pq)
-        else:
-            pq = self.pqs[pid]
-            pq.push(event)
-            heapq.heapify(self.pq_heap)
-
-    cpdef activate(self, process, float time, int priority):
+    cpdef activate(self, Process process, float time, int priority):
         cdef ProcessQueue pq
         cdef Event ev
 
         if flt(time, self.current_time):
             time = self.current_time
-        pq = self.pqs[id(process)]
+
+        pid = process.id
+        pq = process.pq
+        # pq = self.pqs[pid]
         if flt(time, pq.first().time):
             ev = pq.pop()
             ev.time = time
@@ -85,12 +81,13 @@ cdef class Environment:
     cpdef start(self):
         cdef float time
         cdef int priority
+        cdef Process process
 
         for process in self.processes:
-            time, priority = process.send(None)
+            time, priority = process.send(-1)
             self.timeout(process, time, priority)
 
-    cpdef float run_until(self, float ex_time, proc_next=None):
+    cpdef float run_until(self, float ex_time, Process proc_next=None):
         cdef Event ev
         cdef float time
         cdef int priority
@@ -110,7 +107,8 @@ cdef class Environment:
             ev = self.first()
         self.current_time = ex_time
         if proc_next:
-            pq = self.pqs[id(proc_next)]
+            pq = proc_next.pq
+            # pq = self.pqs[proc_next.id]
             if pq:
                 ev = pq.first()
                 if feq(ev.time, _TIME_FOREVER):

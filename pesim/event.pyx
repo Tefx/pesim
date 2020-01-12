@@ -1,7 +1,9 @@
 from .math cimport feq, flt
+cimport cython
 
+@cython.freelist(1024)
 cdef class Event:
-    def __init__(self, float time, process, int priority):
+    def __cinit__(self, float time, Process process, int priority):
         self.time = time
         self.process = process
         self.priority = priority

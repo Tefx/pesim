@@ -4,26 +4,25 @@ from .math cimport flt
 from .define cimport _PRIORITY_MAX, _TIME_FOREVER
 from .sim cimport Environment
 
-cdef class Process:
-    cdef public Environment env
-    cdef public float time
-    cdef public object process
 
+cdef class Process:
     def __init__(self, Environment env):
         self.env = env
         self.time = 0
         self.process = None
+        self.id = id(self)
+        self.pq = ProcessQueue()
 
-    def _wait(self, int priority=_PRIORITY_MAX):
+    cpdef _wait(self, int priority=_PRIORITY_MAX):
         return _TIME_FOREVER, priority
 
-    def _process(self):
+    cpdef _process(self):
         raise NotImplementedError
 
-    def activate(self, float time, int priority):
+    cpdef activate(self, float time, int priority):
         if not flt(self.time, time):
             time = self.time
-        self.env.activate(self.process, time, priority)
+        self.env.activate(self, time, priority)
 
     def __call__(self):
         while True:
@@ -34,4 +33,12 @@ cdef class Process:
 
     def setup(self):
         self.process = self()
-        self.env.add(self.process)
+        self.env.add(self)
+        # self.process = self
+        # self.env.add(self.process)
+
+    cdef tuple send(self, float time):
+        if time < 0:
+            return self.process.send(None)
+        else:
+            return self.process.send(time)
