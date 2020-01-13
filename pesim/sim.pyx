@@ -14,7 +14,7 @@ cdef class Environment:
 
     cpdef Process add(self, Process process):
         self.processes.append(process)
-        heapq.heappush(self.pq_heap, process.pq)
+        # heapq.heappush(self.pq_heap, process.pq)
         return process
 
     cdef float next_time(self):
@@ -39,7 +39,8 @@ cdef class Environment:
         event = Event(time, process, priority)
         pq = process.pq
         pq.push(event)
-        heapq.heapify(self.pq_heap)
+        heapq.heappush(self.pq_heap, pq)
+        # heapq.heapify(self.pq_heap)
 
     cpdef activate(self, Process process, float time, int priority):
         cdef ProcessQueue pq
@@ -48,7 +49,7 @@ cdef class Environment:
         if flt(time, self.current_time):
             time = self.current_time
 
-        pid = process.id
+        # pid = process.id
         pq = process.pq
         # pq = self.pqs[pid]
         if flt(time, pq.first().time):
@@ -65,7 +66,7 @@ cdef class Environment:
         if self.pq_heap and self.pq_heap[0]:
             pq = heapq.heappop(self.pq_heap)
             event = pq.pop()
-            heapq.heappush(self.pq_heap, pq)
+            # heapq.heappush(self.pq_heap, pq)
             return event
         else:
             return None

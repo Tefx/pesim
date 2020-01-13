@@ -3,10 +3,11 @@ cdef class ProcessQueue:
         self.event = None
 
     def __lt__(self, ProcessQueue other):
-        if self.event is None:
-            return other.event is None
-        else:
-            return other.event is None or self.event.ltcmp(other.event)
+        return self.event.ltcmp(other.event)
+        # if self.event is None:
+        #     return other.event is None
+        # else:
+        #     return other.event is None or self.event.ltcmp(other.event)
 
     def __bool__(self):
         return self.event is not None
