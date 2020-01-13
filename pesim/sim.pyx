@@ -2,80 +2,57 @@ import heapq
 
 from .math cimport flt, fle, feq
 from .define cimport _TIME_FOREVER
-from .queue cimport ProcessQueue
 
 
 cdef class Environment:
     def __init__(self):
-        # self.pqs = {}
-        self.pq_heap = []
+        self.ev_heap = []
         self.current_time = 0
         self.processes = []
 
     cpdef Process add(self, Process process):
         self.processes.append(process)
-        # heapq.heappush(self.pq_heap, process.pq)
         return process
 
     cdef float next_time(self):
-        ev = self.first()
-        if ev:
+        cdef Event ev = self.first()
+        if ev is not None:
             return ev.time
         else:
             return _TIME_FOREVER
 
-    cpdef pre_ev_hook(self, time):
+    cpdef pre_ev_hook(self, float time):
         pass
 
-    cpdef post_ev_hook(self, time):
+    cpdef post_ev_hook(self, float time):
         pass
 
     cdef timeout(self, Process process, float time, int priority):
-        cdef Event event
-        cdef ProcessQueue pq
+        cdef Event ev
 
         if flt(time, self.current_time):
             time = self.current_time
-        event = Event(time, process, priority)
-        pq = process.pq
-        pq.push(event)
-        heapq.heappush(self.pq_heap, pq)
-        # heapq.heapify(self.pq_heap)
+
+        ev = Event(time, process, priority)
+        process.next_event = ev
+        heapq.heappush(self.ev_heap, ev)
 
     cpdef activate(self, Process process, float time, int priority):
-        cdef ProcessQueue pq
         cdef Event ev
 
         if flt(time, self.current_time):
             time = self.current_time
 
-        # pid = process.id
-        pq = process.pq
-        # pq = self.pqs[pid]
-        if flt(time, pq.first().time):
-            ev = pq.pop()
+        ev = process.next_event
+        if flt(time, ev.time):
             ev.time = time
             ev.priority = priority
-            pq.push(ev)
-            heapq.heapify(self.pq_heap)
-
-    cdef Event pop(self):
-        cdef ProcessQueue pq
-        cdef Event ev
-
-        if self.pq_heap and self.pq_heap[0]:
-            pq = heapq.heappop(self.pq_heap)
-            event = pq.pop()
-            # heapq.heappush(self.pq_heap, pq)
-            return event
-        else:
-            return None
+            i = self.ev_heap.index(ev)
+            heapq._siftdown(self.ev_heap, 0, i)
 
     cdef Event first(self):
-        cdef ProcessQueue pq
-        if self.pq_heap and self.pq_heap[0]:
-            pq = self.pq_heap[0]
-            return pq.first()
+        if self.ev_heap:
+            return self.ev_heap[0]
         else:
             return None
 
@@ -92,36 +69,28 @@ cdef class Environment:
         cdef Event ev
         cdef float time
         cdef int priority
-        cdef ProcessQueue pq
 
         ev = self.first()
-        while ev and fle(ev.time, ex_time):
-            ev = self.pop()
+        while ev is not None and fle(ev.time, ex_time):
+            ev = heapq.heappop(self.ev_heap)
             self.current_time = max(self.current_time, ev.time)
-            try:
-                self.pre_ev_hook(self.current_time)
-                time, priority = ev.process.send(self.current_time)
-                self.timeout(ev.process, time, priority)
-                self.post_ev_hook(self.current_time)
-            except StopIteration:
-                pass
+            # try:
+            self.pre_ev_hook(self.current_time)
+            time, priority = ev.process.send(self.current_time)
+            self.timeout(ev.process, time, priority)
+            self.post_ev_hook(self.current_time)
+            # except StopIteration:
+            #     pass
             ev = self.first()
         self.current_time = ex_time
-        if proc_next:
-            pq = proc_next.pq
-            # pq = self.pqs[proc_next.id]
-            if pq:
-                ev = pq.first()
-                if feq(ev.time, _TIME_FOREVER):
-                    ev = self.first()
-                    return ev.time
-                else:
-                    return ev.time
-            else:
-                print("error proc has empty event queue")
+        if proc_next is not None:
+            ev = proc_next.next_event
+            if feq(ev.time, _TIME_FOREVER):
+                ev = self.first()
+            return ev.time
         else:
             ev = self.first()
-            if ev:
+            if ev is not None:
                 return ev.time
             else:
                 return _TIME_FOREVER

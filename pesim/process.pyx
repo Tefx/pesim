@@ -11,7 +11,7 @@ cdef class Process:
         self.time = 0
         self.process = None
         self.id = id(self)
-        self.pq = ProcessQueue()
+        self.next_event = None
 
     cpdef _wait(self, int priority=_PRIORITY_MAX):
         return _TIME_FOREVER, priority

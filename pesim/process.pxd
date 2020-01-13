@@ -1,4 +1,4 @@
-from .queue cimport ProcessQueue
+from .event cimport Event
 from .sim cimport Environment
 
 cdef class Process:
@@ -6,7 +6,7 @@ cdef class Process:
     cdef public float time
     cdef public object process
     cdef object id
-    cdef ProcessQueue pq
+    cdef Event next_event
 
     cpdef _wait(self, int priority=?)
     cpdef _process(self)
