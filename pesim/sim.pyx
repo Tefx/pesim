@@ -14,20 +14,20 @@ cdef class Environment:
         self.processes.append(process)
         return process
 
-    cdef float next_time(self):
+    cdef double next_time(self):
         cdef Event ev = self.first()
         if ev is not None:
             return ev.time
         else:
             return _TIME_FOREVER
 
-    cpdef pre_ev_hook(self, float time):
+    cpdef pre_ev_hook(self, double time):
         pass
 
-    cpdef post_ev_hook(self, float time):
+    cpdef post_ev_hook(self, double time):
         pass
 
-    cdef timeout(self, Process process, float time, int priority):
+    cdef timeout(self, Process process, double time, int priority):
         cdef Event ev
 
         if flt(time, self.current_time):
@@ -37,7 +37,7 @@ cdef class Environment:
         process.next_event = ev
         heapq.heappush(self.ev_heap, ev)
 
-    cpdef activate(self, Process process, float time, int priority):
+    cpdef activate(self, Process process, double time, int priority):
         cdef Event ev
 
         if flt(time, self.current_time):
@@ -57,7 +57,7 @@ cdef class Environment:
             return None
 
     cpdef start(self):
-        cdef float time
+        cdef double time
         cdef int priority
         cdef Process process
 
@@ -65,9 +65,9 @@ cdef class Environment:
             time, priority = process.send(-1)
             self.timeout(process, time, priority)
 
-    cpdef float run_until(self, float ex_time, Process proc_next=None):
+    cpdef double run_until(self, double ex_time, Process proc_next=None):
         cdef Event ev
-        cdef float time
+        cdef double time
         cdef int priority
 
         ev = self.first()

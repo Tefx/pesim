@@ -19,7 +19,7 @@ cdef class Process:
     cpdef _process(self):
         raise NotImplementedError
 
-    cpdef activate(self, float time, int priority):
+    cpdef activate(self, double time, int priority):
         if not flt(self.time, time):
             time = self.time
         self.env.activate(self, time, priority)
@@ -37,7 +37,7 @@ cdef class Process:
         # self.process = self
         # self.env.add(self.process)
 
-    cdef tuple send(self, float time):
+    cdef tuple send(self, double time):
         if time < 0:
             return self.process.send(None)
         else:

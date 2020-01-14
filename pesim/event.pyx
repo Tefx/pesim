@@ -3,7 +3,7 @@ cimport cython
 
 @cython.freelist(1024)
 cdef class Event:
-    def __cinit__(self, float time, Process process, int priority):
+    def __cinit__(self, double time, Process process, int priority):
         self.time = time
         self.process = process
         self.priority = priority

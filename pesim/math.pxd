@@ -1,4 +1,4 @@
-cdef float _EPSILON = 1e-3
-cpdef bint feq(float a, float b)
-cpdef bint flt(float a, float b)
-cpdef bint fle(float a, float b)
+cdef double _EPSILON = 1e-3
+cpdef bint feq(double a, double b)
+cpdef bint flt(double a, double b)
+cpdef bint fle(double a, double b)
