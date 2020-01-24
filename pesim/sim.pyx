@@ -1,4 +1,5 @@
 import heapq
+from enum import Enum
 
 from .math cimport flt, fle, feq
 from .define cimport _TIME_FOREVER
@@ -36,6 +37,7 @@ cdef class Environment:
         ev = Event(time, process, priority)
         process.next_event = ev
         heapq.heappush(self.ev_heap, ev)
+        # print(self.current_time, "PUSH", ev.time, ev.priority, ev.priority.value if isinstance(ev.priority, Enum) else None, self.ev_heap[:3])
 
     cpdef activate(self, Process process, double time, int priority):
         cdef Event ev
@@ -70,9 +72,16 @@ cdef class Environment:
         cdef double time
         cdef int priority
 
+        cdef Event last_ev = None
+
         ev = self.first()
         while ev is not None and fle(ev.time, ex_time):
             ev = heapq.heappop(self.ev_heap)
+            # if last_ev:
+            #     print(self.current_time, "LAST", last_ev.time, last_ev.priority, last_ev.priority.value if isinstance(last_ev.priority, Enum) else None, self.ev_heap[:3])
+            # print(self.current_time, "CURRENT", ev.time, ev.priority, ev.priority.value if isinstance(ev.priority, Enum) else None, self.ev_heap[:3])
+            # assert last_ev is None or last_ev <= ev
+            last_ev = ev
             self.current_time = max(self.current_time, ev.time)
             # try:
             self.pre_ev_hook(self.current_time)
