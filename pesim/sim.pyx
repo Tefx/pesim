@@ -22,13 +22,13 @@ cdef class Environment:
         else:
             return _TIME_FOREVER
 
-    cpdef pre_ev_hook(self, double time):
+    cpdef void pre_ev_hook(self, double time):
         pass
 
-    cpdef post_ev_hook(self, double time):
+    cpdef void post_ev_hook(self, double time):
         pass
 
-    cdef timeout(self, Process process, double time, int priority):
+    cdef void timeout(self, Process process, double time, int priority):
         cdef Event ev
 
         if flt(time, self.current_time):
@@ -39,7 +39,7 @@ cdef class Environment:
         heapq.heappush(self.ev_heap, ev)
         # print(self.current_time, "PUSH", ev.time, ev.priority, ev.priority.value if isinstance(ev.priority, Enum) else None, self.ev_heap[:3])
 
-    cpdef activate(self, Process process, double time, int priority):
+    cpdef void activate(self, Process process, double time, int priority):
         cdef Event ev
 
         if flt(time, self.current_time):
@@ -58,7 +58,7 @@ cdef class Environment:
         else:
             return None
 
-    cpdef start(self):
+    cpdef void start(self):
         cdef double time
         cdef int priority
         cdef Process process

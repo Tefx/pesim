@@ -13,13 +13,13 @@ cdef class Process:
         self.id = id(self)
         self.next_event = None
 
-    cpdef _wait(self, int priority=_PRIORITY_MAX):
+    cpdef tuple _wait(self, int priority=_PRIORITY_MAX):
         return _TIME_FOREVER, priority
 
     cpdef _process(self):
         raise NotImplementedError
 
-    cpdef activate(self, double time, int priority):
+    cpdef void activate(self, double time, int priority):
         if not flt(self.time, time):
             time = self.time
         self.env.activate(self, time, priority)

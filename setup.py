@@ -38,5 +38,6 @@ setup(ext_modules=cythonize(
         "wraparound":       False,
         "initializedcheck": False,
         "language_level":   3,
-        }
+        },
+    annotate=True,
     ))
