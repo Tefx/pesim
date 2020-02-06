@@ -42,3 +42,6 @@ cdef class Process:
             return self.process.send(None)
         else:
             return self.process.send(time)
+
+    def next_event_time(self):
+        return self.next_event.time

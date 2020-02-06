@@ -1,7 +1,7 @@
 from .math cimport feq, flt
-cimport cython
+from cython cimport freelist
 
-@cython.freelist(1024)
+@freelist(1024)
 cdef class Event:
     def __cinit__(self, double time, Process process, int priority):
         self.time = time

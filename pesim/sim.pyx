@@ -15,18 +15,18 @@ cdef class Environment:
         self.processes.append(process)
         return process
 
-    cdef double next_time(self):
-        cdef Event ev = self.first()
-        if ev is not None:
-            return ev.time
-        else:
-            return _TIME_FOREVER
-
-    cpdef void pre_ev_hook(self, double time):
-        pass
-
-    cpdef void post_ev_hook(self, double time):
-        pass
+    # cdef double next_time(self):
+    #     cdef Event ev = self.first()
+    #     if ev is not None:
+    #         return ev.time
+    #     else:
+    #         return _TIME_FOREVER
+    #
+    # cpdef void pre_ev_hook(self, double time):
+    #     pass
+    #
+    # cpdef void post_ev_hook(self, double time):
+    #     pass
 
     cdef void timeout(self, Process process, double time, int priority):
         cdef Event ev
@@ -84,10 +84,10 @@ cdef class Environment:
             last_ev = ev
             self.current_time = max(self.current_time, ev.time)
             # try:
-            self.pre_ev_hook(self.current_time)
+            # self.pre_ev_hook(self.current_time)
             time, priority = ev.process.send(self.current_time)
             self.timeout(ev.process, time, priority)
-            self.post_ev_hook(self.current_time)
+            # self.post_ev_hook(self.current_time)
             # except StopIteration:
             #     pass
             ev = self.first()
@@ -98,8 +98,11 @@ cdef class Environment:
                 ev = self.first()
             return ev.time
         else:
-            ev = self.first()
-            if ev is not None:
-                return ev.time
-            else:
-                return _TIME_FOREVER
+            return self.next_event_time()
+
+    cpdef double next_event_time(self):
+        ev = self.first()
+        if ev is not None:
+            return ev.time
+        else:
+            return _TIME_FOREVER

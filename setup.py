@@ -13,10 +13,14 @@ if system() == "Windows":
     library_dir = "libtcy/msvc/Release"
 else:
     extra_compile_args = [
+        # '-O0',
+        # '-g',
         '-Ofast',
         '-march=native',
         '-ffast-math',
-        '-funroll-loops',
+        '-fforce-addr',
+        '-fprefetch-loop-arrays',
+        "-flto",
         ]
     library_dir = "libtcy/cmake-build-debug"
 
