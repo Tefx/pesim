@@ -5,10 +5,14 @@ from platform import system
 
 if system() == "Windows":
     extra_compile_args = [
-        "-fp:fast",
-        "/arch:AVX2",
-        "/favor:INTEL64",
-        "/Ox", "/Ob2", "/Oi", "/Ot", "/Oy", "/GL", "/GT",
+     "/fp:fast",
+     "/arch:AVX512",
+     "/favor:INTEL64",
+     "/O2", "/Ob2", "/GL",
+     ]
+    extra_link_args = [
+        "/MACHINE:X64",
+        "/LTCG",
         ]
     library_dir = "libtcy/msvc/Release"
 else:
@@ -22,6 +26,7 @@ else:
         '-fprefetch-loop-arrays',
         "-flto",
         ]
+    extra_link_args = []
     library_dir = "libtcy/cmake-build-debug"
 
 extensions = [
@@ -29,6 +34,7 @@ extensions = [
         name="pesim.*",
         sources=["pesim/*.pyx"],
         extra_compile_args=extra_compile_args,
+        extra_link_args=extra_link_args,
         ),
     ]
 
