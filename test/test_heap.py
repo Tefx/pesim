@@ -19,6 +19,8 @@ if __name__ == '__main__':
     for i in range(1000000):
         n = Node(randint(0, M))
         heap.push(n)
+        if randint(0, 100) < 30:
+            heap.pop()
         xs.append(n)
 
     # for i in [71, 55, 62, 56, 41]:

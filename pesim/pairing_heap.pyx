@@ -4,7 +4,7 @@ cdef class MinPairingHeapNode:
         self.right = None
         self.first_child = None
 
-    cpdef bint cmp(self, other):
+    cpdef bint cmp(self, MinPairingHeapNode other):
         raise NotImplementedError
 
     cdef MinPairingHeapNode _insert_first_child(self, MinPairingHeapNode node):
@@ -15,16 +15,15 @@ cdef class MinPairingHeapNode:
         self.first_child = node
         return self
 
-    cdef bint _is_first_child(self):
-        return self.left.first_child is self
-
     cdef void _detach(self):
         if self.right is not None:
             self.right.left = self.left
-        if self._is_first_child():
+        if self.left.first_child is self:
             self.left.first_child = self.right
         else:
             self.left.right = self.right
+        self.right = None
+        self.left = None
 
     cdef MinPairingHeapNode _meld(self, MinPairingHeapNode other):
         if self.cmp(other):
@@ -64,16 +63,16 @@ cdef class MinPairingHeapNode:
                     break
 
             left = node.left
+            node.left = None
             while left is not None:
                 tmp = left.left
                 left.left = None
-                node.left = None
                 node = node._meld(left)
                 left = tmp
 
             return node
 
-    def children(self):
+    def _children(self):
         cdef MinPairingHeapNode node = self.first_child
         while node:
             yield node
@@ -83,8 +82,8 @@ cdef class MinPairingHeapNode:
         cdef MinPairingHeapNode c
 
         if self.first_child:
-            print(" " * indent + "{} => {}".format(self, [c for c in self.children()]))
-            for c in self.children():
+            print(" " * indent + "{} => {}".format(self, [c for c in self._children()]))
+            for c in self._children():
                 c.print_tree(indent + 2)
         else:
             print(" " * indent + "{} => {}".format(self, None))
@@ -107,7 +106,10 @@ cdef class MinPairingHeap:
 
     cpdef MinPairingHeapNode pop(self):
         cdef MinPairingHeapNode node = self.root
-        self.root = node._pop()
+        if node is not None:
+            self.root = node._pop()
+        else:
+            self.root = None
         return node
 
     cpdef void notify_dec(self, MinPairingHeapNode node):

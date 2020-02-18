@@ -1,7 +1,9 @@
 from .process cimport Process
+from.pairing_heap cimport MinPairingHeapNode
 
-cdef class Event:
+cdef class Event(MinPairingHeapNode):
     cdef public double time
-    cdef readonly Process process
     cdef public int priority
+    cdef readonly Process process
 
+    cpdef bint cmp(self, MinPairingHeapNode other)
