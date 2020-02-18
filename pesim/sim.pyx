@@ -1,7 +1,7 @@
 import heapq
 from enum import Enum
 
-from .math cimport flt, fle, feq
+from .math_aux cimport flt, fle, feq
 from .define cimport _TIME_FOREVER
 
 

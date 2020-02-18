@@ -1,4 +1,4 @@
-from .math cimport feq, flt
+from .math_aux cimport feq, flt
 from cython cimport freelist
 
 @freelist(1024)
@@ -14,11 +14,11 @@ cdef class Event:
         else:
             return flt(self.time, other.time)
 
-    def __le__(self, Event other):
-        if feq(self.time, other.time):
-            return self.priority <= other.priority
-        else:
-            return flt(self.time, other.time)
+    # def __le__(self, Event other):
+    #     if feq(self.time, other.time):
+    #         return self.priority <= other.priority
+    #     else:
+    #         return flt(self.time, other.time)
 
     def __repr__(self):
         return "<{}|{}|{}>".format(self.time, self.priority, id(self.process))

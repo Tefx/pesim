@@ -1,6 +1,6 @@
 from inspect import isgenerator
 
-from .math cimport flt
+from .math_aux cimport flt
 from .define cimport _PRIORITY_MAX, _TIME_FOREVER
 from .sim cimport Environment
 
