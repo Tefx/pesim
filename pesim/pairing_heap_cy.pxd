@@ -12,6 +12,6 @@ cdef class MinPairingHeap:
     cdef MinPairingHeapNode root
 
     cpdef MinPairingHeapNode first(self)
-    cpdef void push(self, node)
+    cpdef void push(self, MinPairingHeapNode node)
     cpdef MinPairingHeapNode pop(self)
     cpdef void notify_dec(self, MinPairingHeapNode node)

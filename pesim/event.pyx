@@ -1,7 +1,5 @@
 from .math_aux cimport feq, flt
-from cython cimport freelist
 
-@freelist(10240)
 cdef class Event(MinPairingHeapNode):
     def __cinit__(self, double time, Process process, int priority):
         self.time = time

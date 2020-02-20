@@ -1,5 +1,5 @@
 from .process cimport Process
-from .pairing_heap cimport MinPairingHeap
+from .pairing_heap_c cimport MinPairingHeap
 
 cdef class Environment:
     cdef MinPairingHeap ev_heap

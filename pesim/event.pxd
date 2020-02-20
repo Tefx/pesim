@@ -1,5 +1,5 @@
 from .process cimport Process
-from.pairing_heap cimport MinPairingHeapNode
+from.pairing_heap_c cimport MinPairingHeapNode
 
 cdef class Event(MinPairingHeapNode):
     cdef public double time

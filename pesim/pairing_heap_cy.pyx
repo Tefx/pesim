@@ -1,3 +1,6 @@
+from cython cimport freelist
+
+@freelist(1024)
 cdef class MinPairingHeapNode:
     def __cinit__(self):
         self.left = None
@@ -89,8 +92,10 @@ cdef class MinPairingHeapNode:
             print(" " * indent + "{} => {}".format(self, None))
 
 cdef class MinPairingHeap:
-    def __init__(self):
+    def __init__(self, l=()):
         self.root = None
+        for x in l:
+            self.push(x)
 
     def __bool__(self):
         return self.root is not None
@@ -98,7 +103,7 @@ cdef class MinPairingHeap:
     cpdef MinPairingHeapNode first(self):
         return self.root
 
-    cpdef void push(self, node):
+    cpdef void push(self, MinPairingHeapNode node):
         if self.root is None:
             self.root = node
         else:
