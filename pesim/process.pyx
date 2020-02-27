@@ -29,7 +29,7 @@ cdef class Process:
             self.time = yield self._wait()
             p = self._process()
             if isgenerator(p):
-                yield from self._process()
+                yield from p
 
     def setup(self):
         self.process = self()
