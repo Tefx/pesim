@@ -34,8 +34,6 @@ cdef class Process:
     def setup(self):
         self.process = self()
         self.env.add(self)
-        # self.process = self
-        # self.env.add(self.process)
 
     cdef tuple send(self, double time):
         if time < 0:
