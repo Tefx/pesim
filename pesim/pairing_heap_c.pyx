@@ -14,6 +14,8 @@ cdef class MinPairingHeapNode:
         if self.first_child != NULL:
             (<MinPairingHeapNode> (self.first_child)).left = node
             (<MinPairingHeapNode> node).right = self.first_child
+        else:
+            (<MinPairingHeapNode> node).right = NULL
         (<MinPairingHeapNode> node).left = <PyObject*> self
         self.first_child = node
 
@@ -79,13 +81,17 @@ cdef class MinPairingHeapNode:
                 node = ((<MinPairingHeapNode> node)._meld(left))
                 left = tmp
 
+            assert self.left == NULL
+            assert self.right == NULL
+            assert self.first_child == NULL
             return node
 
     def _children(self):
-        cdef MinPairingHeapNode node = <MinPairingHeapNode> (self.first_child)
-        while node:
-            yield node
-            node = <MinPairingHeapNode> (node.right)
+        # cdef MinPairingHeapNode node = <MinPairingHeapNode> (self.first_child)
+        cdef PyObject* node = self.first_child
+        while node != NULL:
+            yield <MinPairingHeapNode>node
+            node = (<MinPairingHeapNode>node).right
 
     cpdef void print_tree(self, int indent=0):
         cdef MinPairingHeapNode c
@@ -96,6 +102,13 @@ cdef class MinPairingHeapNode:
                 c.print_tree(indent + 2)
         else:
             print(" " * indent + "{} => {}".format(self, None))
+
+    cdef clear_subtree(self):
+        cdef MinPairingHeapNode node
+        for node in self._children():
+            node.clear_subtree()
+            Py_DECREF(node)
+        self.first_child = NULL
 
 cdef class MinPairingHeap:
     def __init__(self, l=()):
@@ -113,6 +126,10 @@ cdef class MinPairingHeap:
             return <MinPairingHeapNode> (self.root)
 
     cpdef void push(self, MinPairingHeapNode node):
+        assert node.left == NULL
+        assert node.right == NULL
+        assert node.first_child == NULL
+
         Py_INCREF(node)
         if self.root == NULL:
             self.root = <PyObject*> node
@@ -133,3 +150,9 @@ cdef class MinPairingHeap:
         if node.left != NULL:
             node._detach()
             self.root = (<MinPairingHeapNode> (self.root))._meld(<PyObject*> node)
+
+    cpdef clear(self):
+        if self.root:
+            (<MinPairingHeapNode>self.root).clear_subtree()
+            Py_DECREF(<MinPairingHeapNode>self.root)
+            self.root = NULL

@@ -11,6 +11,7 @@ cdef class MinPairingHeapNode:
     cdef PyObject* _meld(self, PyObject* other)
     cdef PyObject* _pop(self)
     cpdef void print_tree(self, int indent=?)
+    cdef clear_subtree(self)
 
 cdef class MinPairingHeap:
     cdef PyObject* root
@@ -19,3 +20,4 @@ cdef class MinPairingHeap:
     cpdef void push(self, MinPairingHeapNode node)
     cpdef MinPairingHeapNode pop(self)
     cpdef void notify_dec(self, MinPairingHeapNode node)
+    cpdef clear(self)

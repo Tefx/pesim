@@ -1,7 +1,6 @@
-from .math_aux cimport flt, fle
-from .define cimport _TIME_FOREVER
+from .math_aux cimport flt, feq
+from .define cimport _TIME_FOREVER, _PRIORITY_MAX
 from .event cimport Event
-
 
 cdef class Environment:
     def __init__(self):
@@ -35,7 +34,7 @@ cdef class Environment:
             ev.priority = priority
             self.ev_heap.notify_dec(ev)
 
-    cpdef void start(self):
+    cpdef void start(self) except *:
         cdef double time
         cdef int priority
         cdef Process process
@@ -44,13 +43,15 @@ cdef class Environment:
             time, priority = process.send(-1)
             self.timeout(process, time, priority)
 
-    cpdef void run_until(self, double ex_time, Process proc_next=None):
+    cpdef void run_until(self, double ex_time, int current_priority=_PRIORITY_MAX):
         cdef Event ev
         cdef double time
         cdef int priority
 
         ev = self.ev_heap.first()
-        while ev is not None and fle(ev.time, ex_time):
+        while ev is not None and \
+                (flt(ev.time, ex_time) or
+                 (feq(ev.time, ex_time) and ev.priority <= current_priority)):
             ev = self.ev_heap.pop()
             self.current_time = max(self.current_time, ev.time)
             time, priority = ev.process.send(self.current_time)

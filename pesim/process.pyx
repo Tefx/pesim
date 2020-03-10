@@ -42,4 +42,5 @@ cdef class Process:
             return self.process.send(time)
 
     def next_event_time(self):
+        assert self.next_event
         return self.next_event.time
