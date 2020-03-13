@@ -1,16 +1,23 @@
-from .math_aux cimport feq, flt
+from .math_aux cimport d2l, l2d
+from libc.stdint cimport int64_t
 
 cdef class Event(MinPairingHeapNode):
-    def __cinit__(self, double time, Process process, int priority):
-        self.time = time
+    def __cinit__(self, int64_t time_i64, Process process, int priority):
+        self.time_i64 = time_i64
         self.process = process
         self.priority = priority
 
     cpdef bint cmp(self, MinPairingHeapNode other):
-        if feq(self.time, (<Event>other).time):
-            return self.priority < (<Event>other).priority
+        cdef int64_t other_time_i64 = (<Event>other).time_i64
+        cdef int other_priority = (<Event>other).priority
+        if self.time_i64 > other_time_i64:
+            return False
         else:
-            return flt(self.time, (<Event>other).time)
+            return self.time_i64 < other_time_i64 or self.priority < other_priority
+
+    @property
+    def time(self):
+        return l2d(self.time_i64)
 
     def __repr__(self):
-        return "<{}|{}|{}>".format(self.time, self.priority, id(self.process) % 1000)
+        return "<{}|{}|{}>".format(l2d(self.time_i64), self.priority, id(self.process) % 1000)

@@ -59,7 +59,7 @@ def dispatch(env, workers):
         time = env.run_until(time, proc_next=worker.proc)
         while not load.finished:
             time = env.run_until(time, proc_next=worker.proc)
-        time = env.current_time + randint(0, 10)
+        time = env.time + randint(0, 10)
     for worker in workers:
         worker.close()
 

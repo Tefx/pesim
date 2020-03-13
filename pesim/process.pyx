@@ -1,9 +1,8 @@
 from inspect import isgenerator
 
-from .math_aux cimport flt
+from .math_aux cimport l2d, d2d
 from .define cimport _PRIORITY_MAX, _TIME_FOREVER
 from .sim cimport Environment
-
 
 cdef class Process:
     def __init__(self, Environment env):
@@ -20,13 +19,14 @@ cdef class Process:
         raise NotImplementedError
 
     cpdef void activate(self, double time, int priority):
-        if not flt(self.time, time):
-            time = self.time
-        self.env.activate(self, time, priority)
+        if time < self.time:
+            self.env.activate(self, self.time, priority)
+        else:
+            self.env.activate(self, time, priority)
 
     def __call__(self):
         while True:
-            self.time = yield self._wait()
+            yield self._wait()
             p = self._process()
             if isgenerator(p):
                 yield from p
@@ -35,12 +35,5 @@ cdef class Process:
         self.process = self()
         self.env.add(self)
 
-    cdef tuple send(self, double time):
-        if time < 0:
-            return self.process.send(None)
-        else:
-            return self.process.send(time)
-
     def next_event_time(self):
-        assert self.next_event
-        return self.next_event.time
+        return l2d(self.next_event.time_i64)

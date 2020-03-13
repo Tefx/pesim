@@ -41,7 +41,7 @@ extensions = [
 setup(ext_modules=cythonize(
     extensions,
     compiler_directives={
-        "profile":          True,
+        "profile":          False,
         "linetrace":        False,
         "cdivision":        True,
         "boundscheck":      False,
