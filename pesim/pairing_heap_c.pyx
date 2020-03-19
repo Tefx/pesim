@@ -81,13 +81,9 @@ cdef class MinPairingHeapNode:
                 node = ((<MinPairingHeapNode> node)._meld(left))
                 left = tmp
 
-            assert self.left == NULL
-            assert self.right == NULL
-            assert self.first_child == NULL
             return node
 
     def _children(self):
-        # cdef MinPairingHeapNode node = <MinPairingHeapNode> (self.first_child)
         cdef PyObject* node = self.first_child
         while node != NULL:
             yield <MinPairingHeapNode>node
