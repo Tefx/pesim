@@ -1,4 +1,4 @@
-from cpython cimport PyObject, Py_INCREF, Py_DECREF
+from cpython cimport PyObject
 
 cdef class MinPairingHeapNode:
     cdef PyObject *first_child

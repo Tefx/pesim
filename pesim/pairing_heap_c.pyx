@@ -1,3 +1,4 @@
+from cpython cimport Py_INCREF, Py_DECREF
 from cython cimport freelist
 
 @freelist(1024)

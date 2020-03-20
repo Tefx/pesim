@@ -1,8 +1,8 @@
-from .math_aux cimport d2l, l2d, d2d
+from .math_aux cimport d2l, l2d
 from .define cimport _TIME_FOREVER, _PRIORITY_MAX
 from .event cimport Event
 from libc.stdint cimport int64_t
-cimport cython
+
 
 cdef class Environment:
     def __init__(self):
@@ -14,27 +14,10 @@ cdef class Environment:
         self.processes.append(process)
         return process
 
-    cdef void timeout(self, Process process, double time, int priority):
-        if time < self.time:
-            process.next_event = Event(d2l(self.time), process, priority)
-        else:
-            process.next_event = Event(d2l(time), process, priority)
-        self.ev_heap.push(process.next_event)
-
-    cdef void activate(self, Process process, double time, int priority):
-        cdef Event ev
-        cdef int64_t time_i64
-
-        if time < self.time:
-            time_i64 = d2l(self.time)
-        else:
-            time_i64 = d2l(time)
-
-        ev = process.next_event
-        if time_i64 < ev.time_i64:
-            ev.time_i64 = time_i64
-            ev.priority = priority
-            self.ev_heap.notify_dec(ev)
+    cdef inline void timeout(self, Event ev, double time, int priority):
+        ev.time_i64 = d2l(max(self.time, time))
+        ev.priority = priority
+        self.ev_heap.push(ev)
 
     cpdef void start(self) except *:
         cdef double time
@@ -44,7 +27,7 @@ cdef class Environment:
         for process in self.processes:
             process.time = self.time
             time, priority = process.process.send(None)
-            self.timeout(process, time, priority)
+            self.timeout(process.event, time, priority)
 
     cpdef double run_until(self, double ex_time, int current_priority=_PRIORITY_MAX):
         cdef Event ev
@@ -60,7 +43,7 @@ cdef class Environment:
                 self.time = l2d(ev.time_i64)
             ev.process.time = self.time
             time, priority = ev.process.process.send(None)
-            self.timeout(ev.process, time, priority)
+            self.timeout(ev, time, priority)
             ev = self.ev_heap.first()
 
         if d2l(self.time) < ex_time_i64:

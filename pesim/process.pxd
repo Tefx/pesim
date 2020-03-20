@@ -1,13 +1,15 @@
+from .pairing_heap_c cimport MinPairingHeap
 from .event cimport Event
-from .sim cimport Environment
-from libc.stdint cimport int64_t
+from .env cimport Environment
+
 
 cdef class Process:
     cdef public Environment env
     cdef readonly double time
     cdef public object process
     cdef object id
-    cdef readonly Event next_event
+    cdef readonly Event event
+    cdef MinPairingHeap ev_heap
 
     cpdef tuple _wait(self, int priority=?)
     cpdef _process(self)
