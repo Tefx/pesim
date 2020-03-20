@@ -1,15 +1,14 @@
-from distutils.core import setup
-from distutils.extension import Extension
-from Cython.Build import cythonize
+from setuptools import setup, Extension, find_packages
 from platform import system
+from Cython.Build import cythonize
 
 if system() == "Windows":
     extra_compile_args = [
-     "/fp:fast",
-     "/arch:AVX512",
-     "/favor:INTEL64",
-     "/O2", "/Ob2", "/GL",
-     ]
+        "/fp:fast",
+        "/arch:AVX512",
+        "/favor:INTEL64",
+        "/O2", "/Ob2", "/GL",
+        ]
     extra_link_args = [
         "/MACHINE:X64",
         "/LTCG",
@@ -17,8 +16,6 @@ if system() == "Windows":
     library_dir = "libtcy/msvc/Release"
 else:
     extra_compile_args = [
-        # '-O0',
-        # '-g',
         '-Ofast',
         '-march=native',
         '-ffast-math',
@@ -38,16 +35,31 @@ extensions = [
         ),
     ]
 
-setup(ext_modules=cythonize(
-    extensions,
-    compiler_directives={
-        "profile":          False,
-        "linetrace":        False,
-        "cdivision":        True,
-        "boundscheck":      False,
-        "wraparound":       False,
-        "initializedcheck": False,
-        "language_level":   3,
+setup(
+    name="pesim",
+    packages=find_packages(),
+    version=0.9,
+    setup_requires=["Cython"],
+    author="Tefx",
+    author_email="zhaomeng.zhu@gmail.com",
+    url="https://github.com/Tefx/pesim",
+    project_urls={
+        "Source Code": "https://github.com/Tefx/pesim",
         },
-    annotate=True,
-    ))
+    ext_modules=cythonize(
+        extensions,
+        compiler_directives={
+            "profile":          False,
+            "linetrace":        False,
+            "cdivision":        True,
+            "boundscheck":      False,
+            "wraparound":       False,
+            "initializedcheck": False,
+            "language_level":   3,
+            },
+        annotate=True,
+        ),
+    package_data={
+        "":["*.pxd"],
+        },
+    )
