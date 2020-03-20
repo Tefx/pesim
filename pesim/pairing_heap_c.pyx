@@ -11,7 +11,7 @@ cdef class MinPairingHeapNode:
     cpdef bint cmp(self, MinPairingHeapNode other):
         raise NotImplementedError
 
-    cdef void _insert_first_child(self, PyObject*node):
+    cdef inline void _insert_first_child(self, PyObject*node):
         if self.first_child != NULL:
             (<MinPairingHeapNode> (self.first_child)).left = node
             (<MinPairingHeapNode> node).right = self.first_child
@@ -20,7 +20,7 @@ cdef class MinPairingHeapNode:
         (<MinPairingHeapNode> node).left = <PyObject*> self
         self.first_child = node
 
-    cdef void _detach(self):
+    cdef inline void _detach(self):
         if self.right != NULL:
             (<MinPairingHeapNode> self.right).left = self.left
         if (<MinPairingHeapNode> self.left).first_child == <PyObject*> self:
@@ -30,7 +30,7 @@ cdef class MinPairingHeapNode:
         self.right = NULL
         self.left = NULL
 
-    cdef PyObject*_meld(self, PyObject*other):
+    cdef inline PyObject*_meld(self, PyObject*other):
         if self.cmp(<MinPairingHeapNode> other):
             self._insert_first_child(other)
             return <PyObject*> (self)

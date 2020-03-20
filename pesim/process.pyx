@@ -10,7 +10,6 @@ cdef class Process:
         self.env = env
         self.time = 0
         self.process = None
-        self.id = id(self)
         self.ev_heap = None
         self.event = Event(0, self, _PRIORITY_MAX)
 
