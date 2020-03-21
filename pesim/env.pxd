@@ -1,6 +1,7 @@
 from .process cimport Process
+from .event cimport Event
 from .pairing_heap_c cimport MinPairingHeap
-from libc.stdint cimport int64_t
+
 
 cdef class Environment:
     cdef readonly MinPairingHeap ev_heap
@@ -8,8 +9,7 @@ cdef class Environment:
     cdef list processes
 
     cpdef Process add(self, Process process)
-    cdef void timeout(self, Process process, double time, int priority)
-    cdef void activate(self, Process process, double time, int priority)
+    cdef inline void timeout(self, Event ev, double time, int priority)
     cpdef void start(self) except *
     cpdef double run_until(self, double ex_time, int current_priority=?)
     cpdef double next_event_time(self)
