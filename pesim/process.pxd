@@ -1,17 +1,21 @@
-from .pairing_heap_c cimport MinPairingHeap
+from .pairing_heap cimport MinPairingHeap
 from .event cimport Event
-from .env cimport Environment
+from .sim cimport Environment
 
 
 cdef class Process:
-    cdef public Environment env
+    cdef readonly Environment env
     cdef readonly double time
-    cdef public object process
+    cdef object process
     cdef object id
-    cdef readonly Event event
+    cdef Event event
     cdef MinPairingHeap ev_heap
 
-    cpdef tuple _wait(self, int priority=?)
+    cpdef tuple _wait(self)
     cpdef _process(self)
-    cpdef void activate(self, double time, int priority)
+    cpdef void activate(self, double time, int reason)
+    cpdef void start(self)
+    cpdef void finish(self)
+    cpdef void setup_env(self, env)
+
 
