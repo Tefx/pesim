@@ -1,10 +1,11 @@
 from .process cimport Process
 from .pairing_heap cimport MinPairingHeap
 from .event cimport Event
+from libc.stdint cimport int64_t
 
 cdef class Environment:
     cdef readonly MinPairingHeap ev_heap
-    cdef readonly double time
+    cdef int64_t time_i64
     cdef list processes
 
     cpdef Process add(self, Process process)

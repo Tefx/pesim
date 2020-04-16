@@ -1,4 +1,3 @@
-import inspect
 from inspect import isgenerator
 
 from .math_aux cimport l2d, d2l
@@ -9,7 +8,7 @@ from libc.stdint cimport int64_t
 
 cdef class Process:
     def __init__(self, Environment env):
-        self.time = 0
+        # self.time = 0
         self.process = None
         self.ev_heap = None
         self.event = Event(0, self, _TIME_PASSED)
@@ -28,7 +27,7 @@ cdef class Process:
 
     cpdef void activate(self, double time, int reason):
         cdef Event ev
-        cdef int64_t time_i64 = d2l(max(self.env.time, time))
+        cdef int64_t time_i64 = max(self.env.time_i64, d2l(time))
         if time_i64 < self.event.time_i64:
             self.event.time_i64 = time_i64
             self.event.reason = reason
@@ -50,6 +49,9 @@ cdef class Process:
     def next_event_time(self):
         return l2d(self.event.time_i64)
 
+    @property
+    def time(self):
+        return self.env.time
 
 def make_process(func):
     def wrapped(env, *args, **kwargs):

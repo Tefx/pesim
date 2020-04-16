@@ -6,7 +6,7 @@ from libc.stdint cimport int64_t
 cdef class Environment:
     def __init__(self):
         self.ev_heap = MinPairingHeap()
-        self.time = 0
+        self.time_i64 = 0
         self.processes = []
 
     cpdef Process add(self, Process process):
@@ -14,7 +14,7 @@ cdef class Environment:
         return process
 
     cdef inline void timeout(self, Event ev, double time, int reason):
-        ev.time_i64 = d2l(max(self.time, time))
+        ev.time_i64 = max(self.time_i64, d2l(time))
         ev.reason = reason
         self.ev_heap.push(ev)
 
@@ -25,7 +25,7 @@ cdef class Environment:
 
         for process in self.processes:
             process.start()
-            process.time = self.time
+            # process.time = 0
             time, reason = process.process.send(None)
             self.timeout(process.event, time, reason)
 
@@ -44,17 +44,21 @@ cdef class Environment:
         while ev.time_i64 < ex_time_i64 or \
                 (ev.time_i64 == ex_time_i64 and ev.reason <= after_reason):
             ev = self.ev_heap.pop()
-            if d2l(self.time) < ev.time_i64:
-                self.time = l2d(ev.time_i64)
-            ev.process.time = self.time
+            if self.time < ev.time_i64:
+                self.time_i64 = ev.time_i64
+            # ev.process.time = l2d(self.time_i64)
             time, reason = ev.process.process.send(ev.reason)
             self.timeout(ev, time, reason)
             ev = self.ev_heap.first()
 
-        if d2l(self.time) < ex_time_i64:
-            self.time = l2d(ex_time_i64)
+        if self.time_i64 < ex_time_i64:
+            self.time_i64 = ex_time_i64
 
-        return self.time
+        return l2d(self.time_i64)
+
+    @property
+    def time(self):
+        return l2d(self.time_i64)
 
     cpdef double next_event_time(self):
         cdef Event ev = self.ev_heap.first()
