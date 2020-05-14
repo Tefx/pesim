@@ -8,10 +8,14 @@ cdef class Environment:
         self.ev_heap = MinPairingHeap()
         self.time_i64 = 0
         self.processes = []
+        # self.started = False
 
     cpdef Process add(self, Process process):
         self.processes.append(process)
-        return process
+        # if self.started:
+        #     process.start()
+            # time, reason = process.process.send(None)
+            # self.timeout(process.event, time, reason)
 
     cdef inline void timeout(self, Event ev, double time, int reason):
         ev.time_i64 = max(self.time_i64, d2l(time))
@@ -25,9 +29,10 @@ cdef class Environment:
 
         for process in self.processes:
             process.start()
-            # process.time = 0
-            time, reason = process.process.send(None)
-            self.timeout(process.event, time, reason)
+            # time, reason = process.process.send(None)
+            # self.timeout(process.event, time, reason)
+
+        # self.started = True
 
     cpdef void finish(self):
         cdef Process process
@@ -36,19 +41,19 @@ cdef class Environment:
 
     cpdef double run_until(self, double ex_time, int after_reason=_TIME_PASSED) except *:
         cdef Event ev
-        cdef double time
-        cdef int reason
+        # cdef double time
+        # cdef int reason
         cdef int64_t ex_time_i64 = d2l(ex_time)
 
         ev = self.ev_heap.first()
         while ev.time_i64 < ex_time_i64 or \
                 (ev.time_i64 == ex_time_i64 and ev.reason <= after_reason):
             ev = self.ev_heap.pop()
-            if self.time < ev.time_i64:
+            if self.time_i64 < ev.time_i64:
                 self.time_i64 = ev.time_i64
-            # ev.process.time = l2d(self.time_i64)
-            time, reason = ev.process.process.send(ev.reason)
-            self.timeout(ev, time, reason)
+            ev.process.run_step()
+            # time, reason = ev.process.process.send(ev.reason)
+            # self.timeout(ev, time, reason)
             ev = self.ev_heap.first()
 
         if self.time_i64 < ex_time_i64:

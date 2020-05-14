@@ -1,5 +1,5 @@
 from cython cimport freelist
-from cpython cimport Py_INCREF, Py_DECREF
+from cpython cimport Py_INCREF, Py_DECREF, Py_XINCREF, Py_XDECREF
 
 @freelist(1024)
 cdef class MinPairingHeapNode:
@@ -123,15 +123,22 @@ cdef class MinPairingHeap:
             return <MinPairingHeapNode> (self.root)
 
     cpdef void push(self, MinPairingHeapNode node):
-        assert node.left == NULL
-        assert node.right == NULL
-        assert node.first_child == NULL
+        # assert node.left == NULL
+        # assert node.right == NULL
+        # assert node.first_child == NULL
 
         Py_INCREF(node)
         if self.root == NULL:
             self.root = <PyObject*> node
         else:
             self.root = (<MinPairingHeapNode> (self.root))._meld(<PyObject*> node)
+
+    cdef void push_x(self, PyObject* ptr):
+        Py_XINCREF(ptr)
+        if self.root == NULL:
+            self.root = ptr
+        else:
+            self.root = (<MinPairingHeapNode> (self.root))._meld(ptr)
 
     cpdef MinPairingHeapNode pop(self):
         cdef MinPairingHeapNode node
@@ -147,6 +154,11 @@ cdef class MinPairingHeap:
         if node.left != NULL:
             node._detach()
             self.root = (<MinPairingHeapNode> (self.root))._meld(<PyObject*> node)
+
+    cdef void notify_dec_x(self, PyObject* ptr):
+        if (<MinPairingHeapNode>ptr).left != NULL:
+            (<MinPairingHeapNode>ptr)._detach()
+            self.root = (<MinPairingHeapNode> (self.root))._meld(ptr)
 
     cpdef clear(self):
         if self.root:

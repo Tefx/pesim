@@ -17,5 +17,6 @@ cdef class Process:
     cpdef void start(self)
     cpdef void finish(self)
     cpdef void setup_env(self, env)
+    cdef void run_step(self) except *
 
 

@@ -19,6 +19,8 @@ cdef class MinPairingHeap:
 
     cpdef MinPairingHeapNode first(self)
     cpdef void push(self, MinPairingHeapNode node)
+    cdef void push_x(self, PyObject* ptr)
     cpdef MinPairingHeapNode pop(self)
     cpdef void notify_dec(self, MinPairingHeapNode node)
+    cdef void notify_dec_x(self, PyObject* ptr)
     cpdef clear(self)
