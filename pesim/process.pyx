@@ -72,11 +72,10 @@ cdef class Process:
     def time(self):
         return self.env.time
 
-def make_process(func):
-    def wrapped(env, *args, **kwargs):
-        class _Process(Process):
-            def __call__(self):
-                return func(env, *args, **kwargs)
-        return _Process(env)
-    return wrapped
+def make_process(env, func, *args, **kwargs):
+    class _Process(Process):
+        def __call__(self):
+            yield from func(self, *args, **kwargs)
+            yield _TIME_FOREVER, _TIME_PASSED
+    return _Process(env)
 

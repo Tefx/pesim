@@ -11,26 +11,23 @@ class Reason(IntEnum):
     TaskAssign = auto()
     TaskDone = auto()
 
-@make_process
-def consumer(env):
+def consumer(self):
     while True:
         while task_queue:
             task = task_queue[0]
-            print("[{}]Get task: {}".format(env.time, task))
-            yield env.time + randint(5, 10), Reason.TaskDone
-            print("[{}]Done task: {}".format(env.time, task))
+            print("[{}]Get task: {}".format(self.time, task))
+            yield self.time + randint(5, 10), Reason.TaskDone
+            print("[{}]Done task: {}".format(self.time, task))
             task_queue.popleft()
         yield TIME_FOREVER, TIME_PASSED
 
-@make_process
-def producer(env, consumer, num):
+def producer(self, consumer, num):
     for i in range(num):
         if not task_queue:
-            consumer.activate(env.time, Reason.TaskAssign)
-        print("[{}]Put task: {}".format(env.time, i))
+            consumer.activate(self.time, Reason.TaskAssign)
+        print("[{}]Put task: {}".format(self.time, i))
         task_queue.append(i)
-        yield env.time + randint(5, 10), Reason.NewTask
-    yield TIME_FOREVER, TIME_PASSED
+        yield self.time + randint(5, 10), Reason.NewTask
 
 
 if __name__ == '__main__':
@@ -40,8 +37,8 @@ if __name__ == '__main__':
 
     env = Environment()
 
-    c = consumer(env)
-    p = producer(env, c, num)
+    c = make_process(env, consumer)
+    p = make_process(env, producer, c, num)
 
     env.start()
 
