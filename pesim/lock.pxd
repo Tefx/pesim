@@ -23,7 +23,7 @@ cdef class Condition(_SyncObj):
 
 cdef class RLock:
     cdef PyObject* holder
-    cdef dict wait_objs
+    cdef object wait_objs
     cdef readonly int value
 
     cdef bint _async_acquire(self, Process proc, object obj)

@@ -6,7 +6,7 @@ from libc.stdint cimport int64_t
 cdef class Environment:
     cdef readonly MinPairingHeap ev_heap
     cdef int64_t time_i64
-    cdef list processes
+    cdef readonly list processes
     # cdef bint started
 
     cpdef Process add(self, Process process)

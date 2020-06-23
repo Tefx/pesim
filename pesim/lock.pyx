@@ -1,5 +1,6 @@
 from .define cimport _TIME_FOREVER, _TIME_PASSED, _LOCK_RELEASED, _TIME_REACHED
 from cpython.mem cimport PyMem_Malloc, PyMem_Free, PyMem_Realloc
+from collections import OrderedDict
 
 cdef class _SyncObj:
     _ALLOC_STEP = 16
@@ -91,7 +92,7 @@ cdef class Condition(_SyncObj):
 cdef class RLock:
     def __init__(self):
         self.holder = NULL
-        self.wait_objs = {}
+        self.wait_objs = OrderedDict()
         self.value = 1
 
     cdef bint _async_acquire(self, Process proc, object obj):
@@ -133,7 +134,7 @@ cdef class RLock:
         if self.value > 0:
             self.holder = NULL
             if self.wait_objs:
-                obj, procs = self.wait_objs.popitem()
+                obj, procs = self.wait_objs.popitem(False)
                 self.holder = <PyObject*> obj
                 self.value -= 1
                 for proc in procs:
