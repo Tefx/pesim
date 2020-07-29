@@ -7,7 +7,7 @@ cdef class Environment:
     cdef readonly MinPairingHeap ev_heap
     cdef int64_t time_i64
     cdef readonly list processes
-    # cdef bint started
+    cdef bint started
 
     cpdef Process add(self, Process process)
     cdef inline void timeout(self, Event ev, double time, int reason)

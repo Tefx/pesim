@@ -8,7 +8,7 @@ cdef class Environment:
         self.ev_heap = MinPairingHeap()
         self.time_i64 = 0
         self.processes = []
-        # self.started = False
+        self.started = False
 
     cpdef Process add(self, Process process):
         self.processes.append(process)
@@ -32,7 +32,7 @@ cdef class Environment:
             # time, reason = process.process.send(None)
             # self.timeout(process.event, time, reason)
 
-        # self.started = True
+        self.started = True
 
     cpdef void finish(self):
         cdef Process process

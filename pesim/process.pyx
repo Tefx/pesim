@@ -16,6 +16,10 @@ cdef class Process:
         self.event = None
         self.setup_env(env)
 
+        if env.started:
+            self.start()
+
+
     cpdef void setup_env(self, env):
         self.env = env
         self.ev_heap = self.env.ev_heap
