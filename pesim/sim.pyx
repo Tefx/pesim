@@ -71,3 +71,6 @@ cdef class Environment:
             return l2d(ev.time_i64)
         else:
             return _TIME_FOREVER
+
+    cpdef Event next_event(self):
+        return self.ev_heap.first()

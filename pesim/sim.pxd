@@ -15,3 +15,4 @@ cdef class Environment:
     cpdef void finish(self)
     cpdef double run_until(self, double ex_time, int after_reason=?) except *
     cpdef double next_event_time(self)
+    cpdef Event next_event(self)
