@@ -39,7 +39,7 @@ cdef class Environment:
         for process in self.processes:
             process.finish()
 
-    cpdef double run_until(self, double ex_time, int after_reason=_TIME_PASSED) except *:
+    cpdef double run_until(self, double ex_time, int after_reason=_TIME_PASSED):
         cdef Event ev
         # cdef double time
         # cdef int reason

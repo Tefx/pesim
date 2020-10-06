@@ -6,10 +6,10 @@ from .sim cimport Environment
 cdef class Process:
     cdef readonly Environment env
     # cdef readonly double time
-    cdef readonly object process
+    cdef object process
     cdef object id
     cdef Event event
-    cdef readonly MinPairingHeap ev_heap
+    cdef MinPairingHeap ev_heap
 
     cpdef tuple _wait(self)
     cpdef _process(self)
