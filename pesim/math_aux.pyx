@@ -1,6 +1,7 @@
 from libc.math cimport ceil
 
 _EPSILON = 1e-4
+EPSILON = _EPSILON
 
 cdef double _EPSILON1 = _EPSILON * 10
 cdef double _EPSILON1_RECIPROCAL = 1.0 / _EPSILON1
