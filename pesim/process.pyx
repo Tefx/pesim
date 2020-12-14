@@ -9,12 +9,11 @@ from cpython cimport PyObject
 
 cdef class Process:
     def __init__(self, Environment env):
-        # self.time = 0
         self.process = None
         self.ev_heap = None
-        # self.event = Event(0, self, _TIME_PASSED)
         self.event = None
         self.setup_env(env)
+        self._is_waiting = NotImplemented
 
         if env.started:
             self.start()
@@ -40,7 +39,9 @@ cdef class Process:
 
     def __call__(self):
         while True:
+            self._is_waiting = True
             yield self._wait()
+            self._is_waiting = False
             p = self._process()
             if isgenerator(p):
                 yield from p
@@ -71,14 +72,9 @@ cdef class Process:
     def next_event_time(self):
         return l2d(self.event.time_i64)
 
+    def next_activation_time(self):
+        return l2d(self.event.time_i64)
+
     @property
     def time(self):
         return self.env.time
-
-def make_process(env, func, *args, **kwargs):
-    class _Process(Process):
-        def __call__(self):
-            yield from func(self, *args, **kwargs)
-            yield _TIME_FOREVER, _TIME_PASSED
-    return _Process(env)
-

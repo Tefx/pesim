@@ -10,7 +10,7 @@ cdef class _SyncObj:
 
     cdef bint _async_acquire(self, Process proc, int change)
     cdef tuple _acquire(self, Process proc, int change)
-    cdef void _release(self, int change, int acquire_change)
+    cdef void _release(self, int change, int acquire_change, int reason)
 
 cdef class Semaphore(_SyncObj):
     pass

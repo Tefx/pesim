@@ -33,12 +33,12 @@ cdef class _SyncObj:
             self.num_wait += 1
             return _TIME_FOREVER, _TIME_PASSED
 
-    cdef void _release(self, int change, int acquire_change):
+    cdef void _release(self, int change, int acquire_change, int reason):
         self.value += change
         while self.num_wait and self.value > 0:
             self.value -= acquire_change
             self.num_wait -= 1
-            (<Process> self.wait_processes[self.num_wait]).activate(-1, _LOCK_RELEASED)
+            (<Process> self.wait_processes[self.num_wait]).activate(-1, reason)
 
 cdef class Lock(_SyncObj):
     def __init__(self):
@@ -50,8 +50,8 @@ cdef class Lock(_SyncObj):
         else:
             return self._async_acquire(proc, 1)
 
-    def release(self):
-        self._release(1, 1)
+    def release(self, reason=_LOCK_RELEASED):
+        self._release(1, 1, reason)
 
 cdef class Semaphore(_SyncObj):
     def __init__(self, value):
@@ -63,8 +63,8 @@ cdef class Semaphore(_SyncObj):
         else:
             return self._async_acquire(proc, 1)
 
-    def release(self):
-        self._release(1, 1)
+    def release(self, reason=_LOCK_RELEASED):
+        self._release(1, 1, reason)
 
 cdef class Condition(_SyncObj):
     def __init__(self, max_waits=16):
@@ -76,8 +76,8 @@ cdef class Condition(_SyncObj):
         else:
             return self._async_acquire(proc, 0)
 
-    def set(self):
-        self._release(self.num_wait + 1, 0)
+    def set(self, reason=_LOCK_RELEASED):
+        self._release(self.num_wait + 1, 0, reason)
 
     def clear(self):
         self.value = 0
@@ -128,7 +128,7 @@ cdef class RLock:
         else:
             return self._async_acquire(proc, obj)
 
-    def release(self):
+    def release(self, reason=_LOCK_RELEASED):
         cdef Process proc
         self.value += 1
         if self.value > 0:
@@ -138,4 +138,4 @@ cdef class RLock:
                 self.holder = <PyObject*> obj
                 self.value -= 1
                 for proc in procs:
-                    proc.activate(-1, _LOCK_RELEASED)
+                    proc.activate(-1, reason)

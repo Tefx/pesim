@@ -8,6 +8,7 @@ cdef class Process:
     # cdef readonly double time
     cdef object process
     cdef object id
+    cdef readonly bint _is_waiting
     cdef Event event
     cdef MinPairingHeap ev_heap
 

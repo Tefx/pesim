@@ -4,18 +4,16 @@ from .event cimport Event
 from libc.stdint cimport int64_t
 
 cdef class Environment:
-    def __init__(self):
+    def __init__(self, start=False):
         self.ev_heap = MinPairingHeap()
         self.time_i64 = 0
         self.processes = []
         self.started = False
+        if start:
+            self.start()
 
     cpdef Process add(self, Process process):
         self.processes.append(process)
-        # if self.started:
-        #     process.start()
-            # time, reason = process.process.send(None)
-            # self.timeout(process.event, time, reason)
 
     cdef inline void timeout(self, Event ev, double time, int reason):
         ev.time_i64 = max(self.time_i64, d2l(time))
@@ -29,8 +27,6 @@ cdef class Environment:
 
         for process in self.processes:
             process.start()
-            # time, reason = process.process.send(None)
-            # self.timeout(process.event, time, reason)
 
         self.started = True
 
@@ -41,8 +37,6 @@ cdef class Environment:
 
     cpdef double run_until(self, double ex_time, int after_reason=_TIME_PASSED):
         cdef Event ev
-        # cdef double time
-        # cdef int reason
         cdef int64_t ex_time_i64 = d2l(ex_time)
 
         ev = self.ev_heap.first()
@@ -52,14 +46,23 @@ cdef class Environment:
             if self.time_i64 < ev.time_i64:
                 self.time_i64 = ev.time_i64
             ev.process.run_step()
-            # time, reason = ev.process.process.send(ev.reason)
-            # self.timeout(ev, time, reason)
             ev = self.ev_heap.first()
 
         if self.time_i64 < ex_time_i64:
             self.time_i64 = ex_time_i64
 
         return l2d(self.time_i64)
+
+    cpdef double join(self):
+        self.run_until(_TIME_FOREVER-1, _TIME_PASSED)
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.join()
+        self.finish()
 
     @property
     def time(self):
@@ -74,3 +77,14 @@ cdef class Environment:
 
     cpdef Event next_event(self):
         return self.ev_heap.first()
+
+    def process(self, func, *args, loop_forever=False, **kwargs):
+        class _Process(Process):
+            def __call__(self):
+                if loop_forever:
+                    while True:
+                        yield from func(self, *args, **kwargs)
+                else:
+                    yield from func(self, *args, **kwargs)
+                yield _TIME_FOREVER, _TIME_PASSED
+        return _Process(self)
