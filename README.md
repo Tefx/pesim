@@ -2,7 +2,7 @@
 
 I write this as the underlying simulation engine of my container yard simulator, with the goals of:
 
-1. Easy interface.
+1. Simple interfaces.
 2. Cython-ised for speed
 3. DO ONE THING WELL
 
@@ -10,12 +10,21 @@ So what is the one thing for a discrete event simulation? Making the events happ
 
 (I am definitely inspired by `SimPy`, and I like the way it use generator and `yield` statement to represent activities. However, for my projects, `SimPy` is too heavy and too slow. )
 
+## Install
+
+```python
+pip install pesim
+```
+
+`Cython` maybe needed if there is not a corresponding pre-built `wheel`.
+
 ## Usage
-Let's simulate the classical producer-consumer scenario. Here we suppose there are two producers and one consumer. Each producer repeatedly produces **tasks** for every 50-100s, while the consumer also takes 50-100s to process one **task**. Let's donate the `t_j`-th **task** produced by the `p_i`-th producer as `(p_i, t_j)`(both count from 0, for example `(0,0)` is the first task produced by the first produce). 
+
+Let's simulate the classical producer-consumer scenario. Suppose there are two producers and one consumer. Each producer repeatedly produces **tasks** for every 50-100s, while the consumer also takes 50-100s to process one **task**. Let's define the `t_j`-th **task** produced by the `p_i`-th producer as `(p_i, t_j)`(both count from 0, for example `(0,0)` is the first task produced by the first produce). 
 
 `pesim` is a **process-based discrete event simulation engine**. The basic active components are modelled as **processes** (From now on, we use **process** to represent the process in simulation, and *OS process* to represent the processes in operation system).  There are two ways to define a **process**: 
 
-1. Transforming a generator function into a process; or
+1. Transforming a generator function into a **process**; or
 2. Inheriting the `Process` base class.
 
 I will show the two ways, respectively. Before starting, let's first import some auxiliary functions and classes.
@@ -25,19 +34,19 @@ from collections import deque
 from random import randint
 ```
 
-We will use a `deque()` list as the task queue, and use `randint` to produce randomised task intervals and processing time.
+We will use a `deque()` list as the task queue, and use `randint` to randomise task intervals and processing time.
 
 ### Transforming Generator Functions to Processes
 
 #### Consumer
 
-Let define the consumer process first:
+The consumer process can be defined as such:
 
 ```python
 from pesim import TIME_FOREVER, TIME_PASSED
 
 class Reason(IntEnum):
-	TaskDone = auto()
+    TaskDone = auto()
     NewTask = auto()
     
 def consumer(self, task_queue):
@@ -53,21 +62,21 @@ def consumer(self, task_queue):
         print("[{}]Consumer activated by reason {}".format(cur_time, reason))
 ```
 
-The function takes two arguments. The first one is `self`, which is compulsive and represents the simulation **process** (object of class `Process`). The most important attribute of the `self` is `self.time` (of type `float`), which is the current simulated time. All the **processes** in one simulation **Environment** (we will create the environment later) share the same time, but we can access it from any **process**'s `time` value.
+The function takes two arguments. The first one is `self`, which is compulsive and represents the simulation **process** (object of class `Process`). The most important attribute of the `self` is `self.time` (of type `float`), which is the current simulated time. All the **processes** in one simulation **Environment** (we will create the environment later) share the same time, while we can access it from any **process**'s `time` value.
 
-From second arguments, there are data that can be passed to the process by users. Here we pass in a **task queue** created by `deque()`. To remain simple, `pesim` itself does not provide any additional data structure to represent shared resources among different **processes**. All the **processes** will be executed in a single thread of a single *OS process*, so it will be safe to just use any suitable Python object to share information. Here we pass in a **task queue** created by `deque()`.
+From second arguments, there are data that can be passed to the process by users. Here we pass in a **task queue** created by `deque()`. To remain simple, `pesim` itself does not provide any additional data structure to represent shared resources among different **processes**. All the **processes** will be executed in a single thread of a single *OS process*, so it will be safe to just use any suitable Python object to share information.
 
-One can easily find that the function is actually a **generator** function, which periodically `yield`s a 2-tuple. These `yield` statements are the core to represent activities. So, when the **process** need to do something for a time period, it need to `yield` the execution, and when that amount of time is passed, the execution will be resumed. The first item in the tuple is a time, which is the **process**'s supposed *next activation time* as a `float`, and the second item is a *reason* as an `int`. If the activity is completed as expected, the **process** will be "activated" again at the *next activation time*, and the reason is returned by the `yield` statement. 
+One can easily find that the function is actually a **generator** function, which periodically `yield`s a 2-tuple. These `yield` statements are the core to represent activities. So, when the **process** need to do something for a time period, it need to `yield` the execution, and when the predefined amount of time is passed, the execution will be resumed. The first item in the tuple is a time, which is the **process**'s supposed *next activation time* as a `float`, and the second item is a *reason* as an `int`. If the activity is completed as expected, the **process** will be "activated" again at the *next activation time*, and the reason is returned by the `yield` statement. 
 
-The activity may also be interrupted externally with another reason. In this case, the **process** will be activated at an earlier time point, and the statement's returned value will tell the reason. Another usage of the *reason* is to order the events. That is, when multiple **processes** are supposed to activated at the same time, the one yield the **least**  *reason* will be continued first. Here we define two reasons:
+The activity may also be interrupted externally with another reason. In this case, the **process** will be activated at an earlier time point, and the statement's returned value will tell the reason. Another usage of the *reason* is to order the events. That is, when multiple **processes** are supposed to be activated at the same time, the one yields the **least**  *reason* will be awaken first. Here we define two reasons:
 
 ```python
 class Reason(IntEnum):
-	TaskDone = auto()
+    TaskDone = auto()
     NewTask = auto()
 ```
 
-Note that, this *reason* needn't to be exactly  of`int` type, any type that can be casted to `int` can be used. 
+Note that, this *reason* needn't to be exactly of `int` type, any type that can be casted to `int` can be used. As you can see, here we use the `IntEnum` to assign values to the reasons automatically.
 
 Knowing this, the line 
 
@@ -75,7 +84,7 @@ Knowing this, the line
 yield self.time + randint(50, 100), Reason.TaskDone 
 ```
 
-is clear. It randomised a task processing time between 50s and 100s, and pause the process until that time is reached. If everything is normal, when re-activated, the reason `Reason.TaskDone` will be returned.
+is clear. It randomises a task processing time between 50s and 100s, and pauses the **process** until the task is completed. If everything is normal, when re-activated, the reason `Reason.TaskDone` will be returned.
 
 There is another `yield` statement in the code:
 
@@ -83,13 +92,13 @@ There is another `yield` statement in the code:
 reason = yield TIME_FOREVER, TIME_PASSED
 ```
 
-There is also a pre-defined *reason*: `TIME_PASSED`, which is an infinity number, so that the **process** yield with this reason will always be resumed at last. Also, `TIME_FOREVER` can also be considered as an infinite number. So, when the task queue is emptied, this `yield` statement will put the *process* into a forever sleeping. This is because the consumer does not know when the next task will arrive. But don't worry, the **process** can be activated externally by a producer later, when a new task is created.
+There is also a pre-defined *reason*: `TIME_PASSED`, which is an infinite number. The **process** yields with this reason will always be resumed last. Also, `TIME_FOREVER` can be considered as an infinite time. So, when the task queue is emptied, this `yield` statement will put the **process** into a forever sleeping, as the consumer does not know when the next task will arrive. But don't worry, this **process** can be activated externally by a producer later when a new task is created.
 
 Finally, we need to put the code into an infinite loop, so the consumer can keep processing incoming tasks.
 
 #### Producer
 
-Then, let's look at the producer:
+Then, the producer is defined as such:
 
 ```python
 def producer(self, idx, consumer, task_queue, num_task):
@@ -110,7 +119,7 @@ yield self.time + randint(50, 100), Reason.NewTask
 
 makes the **process** wait for a random time interval between 50s and 100s until it can create another task.
 
-Besides, after creating the task and before the **process** being paused, the producer will check whether the `consumer`'s next activation time is `TIME_FOREVER`. If so, it will externally activate the consumer will the reason `Reason.NewTask`:
+Besides, after creating the task and before the **process** being paused, the producer will check whether the `consumer`'s next activation time is `TIME_FOREVER`. If so, it will externally activate the consumer with the reason `Reason.NewTask`:
 
 ```python
 if consumer.next_activation_time() == TIME_FOREVER:
@@ -141,12 +150,13 @@ if __name__ == '__main__':
 
 To run the simulation, we need to create an `Environment` instance, and then use `Environment.process()` to transform the producer and consumer functions into **process**. After that, `env.start()` starts the simulation, `env.join()` runs the simulation until `TIME_FOREVER`, and after that, `env.finish()` dose some finishing and cleaning work. 
 
-If we do not want the simulation to be executed until `TIME_FOREVER`, the `env.join()` can be replaced with `env.run_until(time)`. Also, the **process** need not be created before the `Environment` instance is started. The following code shows another scenario: one producer and one consumer are started first, and then after 1 hour, another producer will join. Also, we don't want to simulate the scenario until forever; instead, we only need it to run for 24 hours.
+If we do not want the simulation to be executed until `TIME_FOREVER`, the `env.join()` can be replaced with `env.run_until(time)`. Also, the **process** needs not to be created before the `Environment` instance is started. The following code shows another scenario: one producer and one consumer are started first, and then after 1 hour, another producer will join. Also, we don't want to simulate the scenario until forever; instead, we only simulate it for 24 hours.
 
 ```python
 env = Environment(start=True)
 task_queue = deque()
 
+env.start()
 c = env.process(consumer, task_queue)
 p0 = env.process(producer, 0, c, task_queue, 100)
 env.run_until(3600)
@@ -160,6 +170,7 @@ The `Environment` can also be used with the `with` statement. It will `start` wh
 
 ```python
 with Environment() as env:
+    task_queue = deque()
     c = env.process(consumer, task_queue)
     p0 = env.process(producer, 0, c, task_queue, 100)
     env.run_until(3600)

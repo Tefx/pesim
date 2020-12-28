@@ -35,10 +35,13 @@ extensions = [
         ),
     ]
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
     name="pesim",
     packages=find_packages(),
-    version=0.9,
+    version="0.9.1",
     setup_requires=["Cython"],
     author="Tefx",
     author_email="zhaomeng.zhu@gmail.com",
@@ -46,6 +49,16 @@ setup(
     project_urls={
         "Source Code": "https://github.com/Tefx/pesim",
         },
+    description="An Minimalist Discrete Event Simulation in Python",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "Development Status :: 4 - Beta",
+        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+        "Operating System :: OS Independent",
+        "Topic :: Scientific/Engineering",
+        ],
     ext_modules=cythonize(
         extensions,
         compiler_directives={
