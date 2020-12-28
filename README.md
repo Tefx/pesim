@@ -16,7 +16,7 @@ So what is the one thing for a discrete event simulation? Making the events happ
 pip install pesim
 ```
 
-`Cython` maybe needed if there is not a corresponding pre-built `wheel`.
+`Cython` is needed if there is not a corresponding pre-built `wheel`.
 
 ## Usage
 
