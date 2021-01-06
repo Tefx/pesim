@@ -41,7 +41,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="pesim",
     packages=find_packages(),
-    version="0.9.1",
+    version="0.9.2",
     setup_requires=["Cython"],
     author="Tefx",
     author_email="zhaomeng.zhu@gmail.com",
@@ -49,7 +49,7 @@ setup(
     project_urls={
         "Source Code": "https://github.com/Tefx/pesim",
         },
-    description="An Minimalist Discrete Event Simulation in Python",
+    description="A Minimalist Discrete Event Simulation in Python",
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
