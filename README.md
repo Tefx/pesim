@@ -1,4 +1,4 @@
-# pesim: An Minimalist Discrete Event Simulation in Python
+# pesim: A Minimalist Discrete Event Simulation in Python
 
 I write this as the underlying simulation engine of my container yard simulator, with the goals of:
 
@@ -16,7 +16,7 @@ So what is the one thing for a discrete event simulation? Making the events happ
 pip install pesim
 ```
 
-`Cython` is needed if there is not a corresponding pre-built `wheel`.
+`Cython` is needed if there is not a corresponding pre-built `wheel` for the targeting platform.
 
 ## Usage
 
