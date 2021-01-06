@@ -5,7 +5,7 @@ from Cython.Build import cythonize
 if system() == "Windows":
     extra_compile_args = [
         "/fp:fast",
-        "/arch:AVX512",
+        # "/arch:AVX512",
         "/favor:INTEL64",
         "/O2", "/Ob2", "/GL",
         ]
