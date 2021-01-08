@@ -9,7 +9,7 @@ cdef class Environment:
     cdef list processes
     cdef readonly bint started
 
-    cpdef Process add(self, Process process)
+    cpdef void add(self, Process process)
     cdef inline void timeout(self, Event ev, double time, int reason)
     cpdef void start(self) except *
     cpdef void finish(self)

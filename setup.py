@@ -2,6 +2,7 @@ from setuptools import setup, Extension, find_packages
 from platform import system
 from Cython.Build import cythonize
 
+
 if system() == "Windows":
     extra_compile_args = [
         "/fp:fast",
@@ -41,7 +42,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="pesim",
     packages=find_packages(),
-    version="0.9.2",
+    version="0.9.3",
     setup_requires=["Cython"],
     author="Tefx",
     author_email="zhaomeng.zhu@gmail.com",
@@ -62,6 +63,7 @@ setup(
     ext_modules=cythonize(
         extensions,
         compiler_directives={
+            # "embedsignature":   True,
             "profile":          False,
             "linetrace":        False,
             "cdivision":        True,

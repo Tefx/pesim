@@ -1,4 +1,6 @@
-# pesim: A Minimalist Discrete Event Simulation in Python
+# pesim: A Minimalist Discrete Event Simulation Library in Python
+
+## About
 
 I write this as the underlying simulation engine of my container yard simulator, with the goals of:
 
@@ -18,7 +20,9 @@ pip install pesim
 
 `Cython` is needed if there is not a corresponding pre-built `wheel` for the targeting platform.
 
-## Usage
+## Tutorial
+
+### A Producer-consumer Example
 
 Let's simulate the classical producer-consumer scenario. Suppose there are two producers and one consumer. Each producer repeatedly produces **tasks** for every 50-100s, while the consumer also takes 50-100s to process one **task**. Let's define the `t_j`-th **task** produced by the `p_i`-th producer as `(p_i, t_j)`(both count from 0, for example `(0,0)` is the first task produced by the first produce). 
 
@@ -36,7 +40,9 @@ from random import randint
 
 We will use a `deque()` list as the task queue, and use `randint` to randomise task intervals and processing time.
 
-### Transforming Generator Functions to Processes
+### Defining Processes
+
+The first way to define a process is using a generator function.
 
 #### Consumer
 
@@ -128,7 +134,7 @@ if consumer.next_activation_time() == TIME_FOREVER:
 
 (Later we will show another notification way using *Synchronisation Primitives*.)
 
-#### Run the simulation
+### Running Simulation
 
 Now, let's set up and start the simulation.
 
@@ -177,7 +183,7 @@ with Environment() as env:
     p1 = env.process(producer, 1, c, task_queue, 100)
 ```
 
-### Inheriting `Process` class
+### Method 2: Inheriting `Process` Class
 
 A **process** can also been created by inheriting the `Process` class. The above code implements same logics as we shown in last section, except that we now make `task_queue` an attribute of `Consumer` and create a new method `submit` to push the task into the queue and check/activate the `Consumer` **process**.
 
