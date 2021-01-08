@@ -1,4 +1,4 @@
-# pesim: A Minimalist Discrete Event Simulation Library in Python
+# pesim: A Minimalist Discrete Event Simulation Library in Python 
 
 ## About
 
@@ -19,6 +19,9 @@ pip install pesim
 ```
 
 `Cython` is needed if there is not a corresponding pre-built `wheel` for the targeting platform.
+
+## Documentation
+See [Documentation](https://pesim.readthedocs.io/en/latest/).
 
 ## Tutorial
 

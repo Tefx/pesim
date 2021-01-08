@@ -48,9 +48,10 @@ setup(
     author_email="zhaomeng.zhu@gmail.com",
     url="https://github.com/Tefx/pesim",
     project_urls={
+        'Documentation': "https://pesim.readthedocs.io",
         "Source Code": "https://github.com/Tefx/pesim",
         },
-    description="A Minimalist Discrete Event Simulation in Python",
+    description="A Minimalist Discrete Event Simulation Library in Python",
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
