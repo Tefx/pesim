@@ -10,7 +10,7 @@ I write this as the underlying simulation engine of my container yard simulator,
 
 So what is the one thing for a discrete event simulation? Making the events happen on right time and in right order. This is the only thing `pesim` do. 
 
-(I am definitely inspired by `SimPy`, and I like the way it use generator and `yield` statement to represent activities. However, for my projects, `SimPy` is too heavy and too slow. )
+(I am definitely inspired by [SimPy](https://simpy.readthedocs.io/en/latest/), and I like the way it uses generator and `yield` statement to represent activities. However, for my projects, SimPy is too heavy and too slow. )
 
 ## Install
 
@@ -18,7 +18,7 @@ So what is the one thing for a discrete event simulation? Making the events happ
 pip install pesim
 ```
 
-`Cython` is needed if there is not a corresponding pre-built `wheel` for the targeting platform.
+[Cython](https://pypi.org/project/Cython/) is needed if there is not a corresponding pre-built `wheel` for the targeting platform.
 
 ## Documentation
 See [Documentation](https://pesim.readthedocs.io/en/latest/).

@@ -22,7 +22,7 @@ copyright = '2021, Zhu Zhaomeng'
 author = 'Zhu Zhaomeng'
 
 # The full version, including alpha/beta/rc tags
-release = '0.9.3'
+release = '0.9.3.1'
 
 
 # -- General configuration ---------------------------------------------------
