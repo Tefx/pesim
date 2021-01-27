@@ -7,6 +7,7 @@ cdef class _SyncObj:
     cdef int wait_max
     cdef int num_wait
     cdef readonly int value
+    cdef readonly dict args
 
     cdef bint _async_acquire(self, Process proc, int change)
     cdef tuple _acquire(self, Process proc, int change)
@@ -25,6 +26,7 @@ cdef class RLock:
     cdef PyObject* holder
     cdef object wait_objs
     cdef readonly int value
+    cdef readonly dict args
 
     cdef bint _async_acquire(self, Process proc, object obj)
     cdef tuple _acquire(self, Process proc, object obj)

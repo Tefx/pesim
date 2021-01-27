@@ -31,11 +31,12 @@ from collections import OrderedDict
 cdef class _SyncObj:
     _ALLOC_STEP = 16
 
-    def __init__(self, int value, int wait_max=16):
+    def __init__(self, int value, int wait_max=16, **kwargs):
         self.wait_max = wait_max
         self.num_wait = 0
         self.wait_processes = <PyObject**> PyMem_Malloc(sizeof(PyObject*) * self.wait_max)
         self.value = value
+        self.args = kwargs
 
     def __dealloc__(self):
         PyMem_Free(self.wait_processes)
@@ -71,8 +72,8 @@ cdef class Lock(_SyncObj):
     The class implementing primitive lock objects.
     Once a process has acquired a lock, subsequent attempts to acquire it will block, until it is released.
     """
-    def __init__(self):
-        super(Lock, self).__init__(1)
+    def __init__(self, **kwargs):
+        super(Lock, self).__init__(1, **kwargs)
 
     def acquire(self, Process proc, bint sync=True):
         """acquire(proc, sync=True)
@@ -118,8 +119,8 @@ cdef class Semaphore(_SyncObj):
         value(int): Current value of the internal counter.
 
     """
-    def __init__(self, value):
-        super(Semaphore, self).__init__(value)
+    def __init__(self, value, **kwargs):
+        super(Semaphore, self).__init__(value, **kwargs)
 
     def acquire(self, Process proc, bint sync=True):
         """acquire(self, proc, sync=True)
@@ -165,10 +166,11 @@ cdef class RLock:
 
     There is an additional argument `obj` in :meth:`RLock.acquire()`, which indicates the associated resources.
     """
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.holder = NULL
         self.wait_objs = OrderedDict()
         self.value = 1
+        self.args = kwargs
 
     cdef bint _async_acquire(self, Process proc, object obj):
         if self.holder == NULL:
@@ -260,8 +262,8 @@ cdef class Condition(_SyncObj):
     Attributes:
         value(int): 0 if the condition is not set, 1 if the condition is set.
     """
-    def __init__(self, max_waits=16):
-        super(Condition, self).__init__(0, max_waits)
+    def __init__(self, max_waits=16, **kwargs):
+        super(Condition, self).__init__(0, max_waits, **kwargs)
 
     def wait(self, Process proc, bint sync=True):
         """wait(proc, sync=True)
@@ -287,13 +289,23 @@ cdef class Condition(_SyncObj):
             reason: Activation reason. When the condition is set, all the processes waiting on the condition
                 will be activated with the given reason.
         """
-        self._release(self.num_wait + 1, 0, reason)
+        if self.value == 0:
+            self._release(1, 0, reason)
 
     def clear(self):
         """clear()
         Unset a condition variable.
         """
         self.value = 0
+
+    def is_set(self):
+        """is_set()
+        Whether the condition has been set.
+
+        Returns:
+            `True` or `False`
+        """
+        return self.value > 0
 
     def __enter__(self):
         self.set()

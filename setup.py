@@ -42,7 +42,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="pesim",
     packages=find_packages(),
-    version="0.9.3.1",
+    version="0.9.4.0",
     setup_requires=["Cython"],
     author="Tefx",
     author_email="zhaomeng.zhu@gmail.com",
