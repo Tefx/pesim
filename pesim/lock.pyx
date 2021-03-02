@@ -108,7 +108,7 @@ cdef class Lock(_SyncObj):
 cdef class Semaphore(_SyncObj):
     """Semaphore(value)
     A Semaphore object has a internal counter.
-    The value if the counter can never go below zero.
+    The value of the counter can never go below zero.
     If the counter value is zero, the :meth:`acquire()` will block until the value goes greater than 0.
     A successful :meth:`acquire()` decreases internal counter by 1, and :meth:`release()` increases the counter by 1.
 
