@@ -239,6 +239,67 @@ cdef class RLock:
                 for proc in procs:
                     proc.activate(-1, reason)
 
+from heapq import heappop, heappush
+
+cdef class OrderedLock:
+    cdef list future_acquires
+    cdef dict pending_acquires
+    cdef int value
+
+    def __init__(self, **kwargs):
+        self.future_acquires = []
+        self.pending_acquires = {}
+        self.value = 1
+
+    cdef bint _async_acquire(self, Process proc, object key):
+        if self.value > 0 and key == self.future_acquires[0]:
+            self.value -= 1
+            heappop(self.future_acquires)
+            return True
+        else:
+            return False
+
+    cdef tuple _acquire(self, Process proc, object key):
+        if self.value > 0 and key == self.future_acquires[0]:
+            self.value -= 1
+            heappop(self.future_acquires)
+            return -1, _TIME_REACHED
+        else:
+            if key in self.pending_acquires:
+                raise ValueError("Key used in previous acquiring: {}".format(key))
+            self.pending_acquires[key] = proc
+            return _TIME_FOREVER, _TIME_PASSED
+
+    def test(self, Process proc, object key):
+        return self.value > 0 and key == self.future_acquires[0]
+
+    def acquire(self, Process proc, bint sync=True, object key=None):
+        if sync:
+            res = self._acquire(proc, key)
+        else:
+            res = self._async_acquire(proc, key)
+        # print("[OL]Acquire:", proc.name, key, res, self.value, self.future_acquires)
+        return res
+
+    def release(self, reason=_LOCK_RELEASED):
+        self.value += 1
+        # print("[OL]Release:", self.future_acquires, self.pending_acquires, self.value)
+        cdef object activated_key = None
+        for key, proc in self.pending_acquires.items():
+            if key == self.future_acquires[0]:
+                self.value -= 1
+                proc.activate(-1, reason)
+                heappop(self.future_acquires)
+                activated_key = key
+                # print("[OL]Release activate:", proc.name, key, self.value)
+                break
+        if activated_key is not None:
+            del self.pending_acquires[activated_key]
+
+    def declare_acquiring(self, object key):
+        # print("[OL]Declare:", key)
+        heappush(self.future_acquires, key)
+
 cdef class Condition(_SyncObj):
     """Condition()
     This class implements condition objects.
@@ -291,6 +352,12 @@ cdef class Condition(_SyncObj):
         """
         if self.value == 0:
             self._release(1, 0, reason)
+
+    def acquire(self, Process proc, bint sync=True):
+        return self.wait(proc, sync)
+
+    def release(self, reason=_LOCK_RELEASED):
+        return self.set(reason)
 
     def clear(self):
         """clear()
