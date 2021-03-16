@@ -266,13 +266,14 @@ cdef class OrderedLock:
     once the task has been generated, B will always get the lock prior to A get the lock for the next task,
     even if A acquire again earlier than B.
 
-    Examples:
+    Examples::
 
             lock = OrderedLock()
             a.declare_acquiring(1)
             b.declare_acquiring(2)
 
-    In this case, b acquire first, it will fail or be block even if at that time, the lock is unlocked.
+    In this case, if `b` acquires first, it will always be blocked until `a` acquires and then releases the lock,
+    even if at `b`'s acquiring time, `lock` is unlocked.
     """
     cdef list future_acquires
     cdef dict pending_acquires
