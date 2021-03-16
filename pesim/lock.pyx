@@ -1,6 +1,6 @@
 """This module defines for synchronisation primitives: :obj:`Lock`, :obj:`Semaphore`, :obj:`RLock` and :obj:`Condition`.
 
-:obj:`Lock`, :obj:`Semaphore` and :obj:`RLock` all have methods of :meth:`acquire()` and :meth:`release()`.
+:obj:`Lock`, :obj:`OrderedLock`, :obj:`Semaphore` and :obj:`RLock` all have methods of :meth:`acquire()` and :meth:`release()`.
 :meth:`acquire()` waits on the primitive object until it becomes unlocked, and then turns its state to lock.
 Meanwhile :meth:`release()` is used to unlocked a previously locked primitive object.
 The calling of :meth:`acquire()` can be blocking or non-blocking.
@@ -22,6 +22,10 @@ The process will be reactivated once the object's state turns to unlocked again:
 :obj:`Condition` does not have methods :meth:`acquire()` and :meth:`release()`.
 Instead, it has two method :meth:`set` and :meth:`wait`, \
 where :meth:`set` sets the condition and :meth:`wait` waits until the condition is set.
+
+:obj:`OrderedLock` has an additional method :meth:`declare_acquiring()`.
+A object need to declare with a key before acquiring a :obj:`OrderedLock`.
+The objects will get the lock in the order of the key.
 """
 
 from .define cimport _TIME_FOREVER, _TIME_PASSED, _LOCK_RELEASED, _TIME_REACHED
@@ -242,6 +246,34 @@ cdef class RLock:
 from heapq import heappop, heappush
 
 cdef class OrderedLock:
+    """ OrderedLock()
+    This class implements ordered lock objects.
+    The OrderedLock enforces the order of objects get the lock.
+
+    Consider the following scenario.
+    A task need to be operated by two equipments A and B in order, \
+    and both equipment need to access an unsharable resources r.
+    After completed its part in a task, the equipment will start to operate a new task immediately.
+    If we lock the resource with a normal :obj:`Lock` and \
+    let A acquire the lock again immediately for the new task after releasing it for previous task,
+    its possible that B will never get the lock.
+    In this case, forcing the order of the objects getting the lock can be a solution.
+
+    There is an additional method :meth:`declare_acquiring` that needs to be invoked before actually acquiring the lock.
+    A key need to be provided to call the method.
+    After that, it will be assured that the objects get the lock in the order of the key.
+    In previous case, if we assign each task an increasing key and declare the acquiring for A and B \
+    once the task has been generated, B will always get the lock prior to A get the lock for the next task,
+    even if A acquire again earlier than B.
+
+    Examples:
+
+            lock = OrderedLock()
+            a.declare_acquiring(1)
+            b.declare_acquiring(2)
+
+    In this case, b acquire first, it will fail or be block even if at that time, the lock is unlocked.
+    """
     cdef list future_acquires
     cdef dict pending_acquires
     cdef int value
@@ -271,19 +303,47 @@ cdef class OrderedLock:
             return _TIME_FOREVER, _TIME_PASSED
 
     def test(self, Process proc, object key):
+        """ test(self, proc, key)
+
+        Test if `proc` can successfully acquire the object `key`:
+
+        Args:
+            proc(Process): A process
+            key(object): A key
+
+        Returns:
+            `True` or `False`
+        """
         return self.value > 0 and key == self.future_acquires[0]
 
     def acquire(self, Process proc, bint sync=True, object key=None):
+        """acquire(self, proc, sync=True, object key=None)
+
+        Acquire the lock. The acquiring will be successful only if \
+        `self` is unlocked and the ket equals to current smallest key that has been declared and not successfully acquired.
+
+        Args:
+            proc(Process): The process to acquire the lock.
+            sync(bool): Blocking or non-blocking.
+            key(object): A key. The key should have been declared.
+
+        Returns:
+            `True` or `False` when `sync=False`, otherwise a 2-tuple (time, reason) to be used with `yield`.
+        """
         if sync:
             res = self._acquire(proc, key)
         else:
             res = self._async_acquire(proc, key)
-        # print("[OL]Acquire:", proc.name, key, res, self.value, self.future_acquires)
         return res
 
     def release(self, reason=_LOCK_RELEASED):
+        """release(reason=LOCK_RELEASED)
+        Release the lock.
+
+        Args:
+            reason: reason to activate next process that gets the lock.
+        """
         self.value += 1
-        # print("[OL]Release:", self.future_acquires, self.pending_acquires, self.value)
         cdef object activated_key = None
         for key, proc in self.pending_acquires.items():
             if key == self.future_acquires[0]:
@@ -291,13 +351,20 @@ cdef class OrderedLock:
                 proc.activate(-1, reason)
                 heappop(self.future_acquires)
                 activated_key = key
-                # print("[OL]Release activate:", proc.name, key, self.value)
                 break
         if activated_key is not None:
             del self.pending_acquires[activated_key]
 
     def declare_acquiring(self, object key):
-        # print("[OL]Declare:", key)
+        """declare_acquiring(self, key)
+
+        Declare a future acquiring.
+
+        Args:
+            key(object): A key that will be associated with the future acquiring. \
+            `key` must be comparable using `<`. \
+            Future objects will get the lock in the order of `key`, from smallest to largest.
+        """
         heappush(self.future_acquires, key)
 
 cdef class Condition(_SyncObj):
@@ -381,4 +448,4 @@ cdef class Condition(_SyncObj):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.clear()
 
-__all__ = ["Lock", "Semaphore", "RLock", "Condition"]
+__all__ = ["Lock", "Semaphore", "RLock", "Condition", "OrderedLock"]

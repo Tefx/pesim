@@ -5,7 +5,7 @@ from libc.stdint cimport int64_t
 
 
 cdef class Environment:
-    """Environment(start=False)
+    """Environment(start=False, stop_time=TIME_FOREVER)
     The simulation environment::
 
         e = Environment(start=True)

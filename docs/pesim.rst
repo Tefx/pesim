@@ -55,3 +55,6 @@ Synchronisation Primitives
    .. automethod:: pesim.lock.Condition.set
    .. automethod:: pesim.lock.Condition.wait
    .. automethod:: pesim.lock.Condition.clear
+   
+.. autoclass:: pesim.lock.OrderedLock
+   :members: declare_acquiring, acquire, release, test
