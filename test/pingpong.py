@@ -4,7 +4,7 @@ from pesim import Environment, Lock, TIME_PASSED
 from random import randint
 
 
-def player(self, name, ball):
+def player(self, name: str, ball: Lock):
     yield ball.acquire(self)                        # catch the ball
     print(name, self.time)                          # ping!
     yield self.time + randint(5, 10), TIME_PASSED   # let the ball fly
