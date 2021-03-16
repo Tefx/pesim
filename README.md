@@ -29,13 +29,13 @@ See [Documentation](https://pesim.readthedocs.io/en/latest/).
 
 ```python
 from pesim import Environment, Lock, TIME_PASSED
-from random import randint
+from random import uniform
 
 
 def player(self, name: str, ball: Lock):
     yield ball.acquire(self)                        # catch the ball
     print(name, self.time)                          # ping!
-    yield self.time + randint(5, 10), TIME_PASSED   # let the ball fly for 5-10s
+    yield self.time + uniform(5, 10), TIME_PASSED   # let the ball fly
     ball.release()                                  # so others can catch
 
 
