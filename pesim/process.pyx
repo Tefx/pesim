@@ -103,9 +103,8 @@ cdef class Process:
         self.process = None
         self.ev_heap = None
         self.event = None
+        self._is_waiting = False
         self.setup_env(env)
-        self._is_waiting = NotImplemented
-
         if env.started:
             self.start()
 
@@ -179,22 +178,34 @@ cdef class Process:
             if isgenerator(p):
                 yield from p
 
-    cpdef void start(self):
+    cpdef void start(self) except *:
         cdef double time
         cdef int reason
+        cdef object result
 
         self.process = self()
-        time, reason = self.process.send(None)
+        # time, reason = self.process.send(None)
+        result = self.process.send(None)
+        if result is None:
+            time = _TIME_FOREVER
+            reason= _TIME_PASSED
+        else:
+            time, reason = result
         self.event = Event(max(self.env.time_i64, d2l(time)), self, reason)
-        # self.event.time_i64 = max(self.env.time_i64, d2l(time))
-        # self.event.reason = reason
         self.ev_heap.push_x(<PyObject*>(self.event))
 
     cdef void run_step(self) except *:
         cdef double time
         cdef int reason
+        cdef object result
 
-        time, reason = self.process.send(self.event.reason)
+        # time, reason = self.process.send(self.event.reason)
+        result = self.process.send(self.event.reason)
+        if result is None:
+            time = _TIME_FOREVER
+            reason= _TIME_PASSED
+        else:
+            time, reason = result
         self.event.time_i64 = max(self.env.time_i64, d2l(time))
         self.event.reason = reason
         self.ev_heap.push_x(<PyObject*>(self.event))

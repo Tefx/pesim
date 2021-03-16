@@ -25,6 +25,27 @@ See [Documentation](https://pesim.readthedocs.io/en/latest/).
 
 ## Tutorial
 
+### A Minimal Example
+
+```python
+from pesim import Environment, Lock, TIME_PASSED
+from random import randint
+
+
+def player(self, name, ball):
+    yield ball.acquire(self)                        # catch the ball
+    print(name, self.time)                          # ping!
+    yield self.time + randint(5, 10), TIME_PASSED   # let the ball fly for 5-10s
+    ball.release()                                  # so others can catch
+
+
+if __name__ == '__main__':
+    ball = Lock()
+    with Environment(stop_time=1000) as env:
+        env.process(player, "ping", ball, loop_forever=True)
+        env.process(player, "pong", ball, loop_forever=True)
+```
+
 ### A Producer-consumer Example
 
 Let's simulate the classical producer-consumer scenario. Suppose there are two producers and one consumer. Each producer repeatedly produces **tasks** for every 50-100s, while the consumer also takes 50-100s to process one **task**. Let's define the `t_j`-th **task** produced by the `p_i`-th producer as `(p_i, t_j)`(both count from 0, for example `(0,0)` is the first task produced by the first produce). 
@@ -143,7 +164,7 @@ Now, let's set up and start the simulation.
 
 ```python
 if __name__ == '__main__':
-    from pesim impoer Environment
+    from pesim import Environment
 
     env = Environment()
 

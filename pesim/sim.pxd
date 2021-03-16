@@ -8,6 +8,7 @@ cdef class Environment:
     cdef int64_t time_i64
     cdef list processes
     cdef readonly bint started
+    cdef readonly double stop_time
 
     cpdef void add(self, Process process)
     cdef inline void timeout(self, Event ev, double time, int reason)

@@ -15,7 +15,7 @@ cdef class Process:
     cpdef tuple _wait(self)
     cpdef _process(self)
     cpdef void activate(self, double time, int reason)
-    cpdef void start(self)
+    cpdef void start(self) except *
     cpdef void finish(self)
     cpdef void setup_env(self, env)
     cdef void run_step(self) except *

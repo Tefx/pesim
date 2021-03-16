@@ -15,7 +15,7 @@ cdef class Environment:
         e.join() #or e.run_until(TIME_FOREVER, TIME_PASSED)
         e.finish()
 
-    Instead of using :obj:`start` and :obj:`finish` explicitly, the :obj:`Environment` can also be used with context::
+    Instead of using :meth:`start` and :meth:`finish` explicitly, the :obj:`Environment` can also be used with context::
 
         with Environment() as e:
             #add some processes
@@ -28,18 +28,20 @@ cdef class Environment:
     Args:
         start(bool): Start the simulation immediately. Optional, default is `False`. If it is `False`, the environment \
         needs to be started by `start()` explicitly.
+        stop_time(double): Maximum time of simulation run. Used in :meth:`join`. Default is TIME_FOREVER.
 
     Attributes:
         time(float): Current time in the simulation environment.
         started(bool): Whether the simulation is started.
-
+        stop_time(double): Maximum time of simulation run.
     """
 
-    def __init__(self, start=False):
+    def __init__(self, start=False, double stop_time=_TIME_FOREVER):
         self.ev_heap = MinPairingHeap()
         self.time_i64 = 0
         self.processes = []
         self.started = False
+        self.stop_time = stop_time
         if start:
             self.start()
 
@@ -105,9 +107,12 @@ cdef class Environment:
 
     cpdef double join(self):
         """join()
-        Process all the remaining events. In other words, this call runs the simulation until `TIME_FOREVER`.
+        Process all the remaining events. In other words, this call runs the simulation until `self.stop_time`.
         """
-        self.run_until(_TIME_FOREVER-1, _TIME_PASSED)
+        if self.stop_time != _TIME_FOREVER:
+            self.run_until(self.stop_time, _TIME_PASSED)
+        else:
+            self.run_until(_TIME_FOREVER-1, _TIME_PASSED)
 
     def __enter__(self):
         self.start()

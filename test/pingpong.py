@@ -1,0 +1,18 @@
+exec(open("./init.py").read())
+
+from pesim import Environment, Lock, TIME_PASSED
+from random import randint
+
+
+def player(self, name, ball):
+    yield ball.acquire(self)                        # catch the ball
+    print(name, self.time)                          # ping!
+    yield self.time + randint(5, 10), TIME_PASSED   # let the ball fly
+    ball.release()                                  # so others can catch
+
+
+if __name__ == '__main__':
+    ball = Lock()
+    with Environment(stop_time=1000) as env:
+        env.process(player, "ping", ball, loop_forever=True)
+        env.process(player, "pong", ball, loop_forever=True)
